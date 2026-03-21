@@ -7,17 +7,19 @@ const config = new pulumi.Config();
 // GitHub PAT with read:packages + repo scopes.
 // Set with: pulumi config set --secret githubToken <token> --stack prod
 
-const githubToken = config.requireSecret("githubToken");
-
-new k8s.core.v1.Secret("charemma-github", {
-  metadata: {
-    name: "charemma-github",
-    namespace: "argocd",
-  },
-  stringData: {
-    token: githubToken,
-  },
-});
+const githubToken = config.getSecret("githubToken");
+if (githubToken) {
+  new k8s.core.v1.Secret("charemma-github", {
+    metadata: {
+      name: "charemma-github",
+      namespace: "argocd",
+    },
+    stringData: {
+      username: "charemma",
+      password: githubToken,
+    },
+  });
+}
 
 // ── attic ──────────────────────────────────────────────────────────────────
 

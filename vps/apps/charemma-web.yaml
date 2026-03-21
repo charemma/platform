@@ -3,12 +3,6 @@ kind: Application
 metadata:
   name: charemma-web
   namespace: argocd
-  annotations:
-    argocd-image-updater.argoproj.io/image-list: web=ghcr.io/charemma/charemma-web
-    argocd-image-updater.argoproj.io/web.update-strategy: latest
-    argocd-image-updater.argoproj.io/web.allow-tags: regexp:^sha-
-    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/charemma-github
-    argocd-image-updater.argoproj.io/write-back-target: kustomization
 spec:
   project: default
   source:

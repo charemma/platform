@@ -1,0 +1,25 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: charemma-web
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: charemma-web
+      images:
+        - alias: web
+          imageName: ghcr.io/charemma/charemma-web:latest
+          commonUpdateSettings:
+            updateStrategy: latest
+            allowTags: "^sha-"
+          manifestTargets:
+            kustomize:
+              name: ghcr.io/charemma/charemma-web
+      writeBackConfig:
+        method: git:secret:argocd/charemma-github
+        gitConfig:
+          repository: https://github.com/charemma/charemma-web
+          branch: main
+          writeBackTarget: "kustomization:./k8s"
+  writeBackConfig:
+    method: argocd
