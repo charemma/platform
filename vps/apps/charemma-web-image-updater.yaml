@@ -19,6 +19,6 @@ spec:
         gitConfig:
           repository: https://github.com/charemma/charemma-web
           branch: main
-          writeBackTarget: "kustomization:./k8s"
+          writeBackTarget: "kustomization:."
   writeBackConfig:
     method: argocd
