@@ -3,6 +3,22 @@ import * as k8s from "@pulumi/kubernetes";
 
 const config = new pulumi.Config();
 
+// ── argocd image updater ───────────────────────────────────────────────────
+// GitHub PAT with read:packages + repo scopes.
+// Set with: pulumi config set --secret githubToken <token> --stack prod
+
+const githubToken = config.requireSecret("githubToken");
+
+new k8s.core.v1.Secret("charemma-github", {
+  metadata: {
+    name: "charemma-github",
+    namespace: "argocd",
+  },
+  stringData: {
+    token: githubToken,
+  },
+});
+
 // ── attic ──────────────────────────────────────────────────────────────────
 
 const atticJwtSecret = config.requireSecret("atticJwtSecret");
