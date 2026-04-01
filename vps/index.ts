@@ -223,6 +223,22 @@ new k8s.networking.v1.Ingress("argocd", {
   },
 }, { dependsOn: argoCD });
 
+// ── cloudnative-pg ─────────────────────────────────────────────────────────
+// PostgreSQL operator for Kubernetes (CNCF Sandbox).
+// This deploys the operator only. Actual Cluster CRs live in the app repos.
+
+const cnpgNs = new k8s.core.v1.Namespace("cnpg-system", {
+  metadata: { name: "cnpg-system" },
+});
+
+new k8s.helm.v3.Release("cnpg", {
+  name: "cnpg",
+  chart: "cloudnative-pg",
+  version: "0.28.0",
+  repositoryOpts: { repo: "https://cloudnative-pg.github.io/charts" },
+  namespace: cnpgNs.metadata.name,
+}, { dependsOn: cnpgNs });
+
 // Root Application -- manages all apps in infra/vps/apps/ via GitOps
 new k8s.apiextensions.CustomResource("root-app", {
   apiVersion: "argoproj.io/v1alpha1",
