@@ -1,3 +1,14 @@
+# CI/CD for k8s workloads on the Hetzner VPS (k3s cluster).
+# Tooling (pulumi, node, just) comes from the repo's Nix flake devShell.
+#
+# Triggers:
+#   PR   -> pulumi preview (dry-run, no changes applied)
+#   push -> pulumi up      (apply changes to the cluster)
+#
+# Required GitHub repo secrets:
+#   PULUMI_ACCESS_TOKEN  -- authenticates with Pulumi Cloud + decrypts stack secrets
+#   KUBECONFIG           -- k3s kubeconfig (server URL must point to the VPS, not 127.0.0.1)
+
 name: Deploy VPS workloads
 
 on:
@@ -23,14 +34,17 @@ jobs:
   deploy:
     name: Pulumi ${{ github.event_name == 'pull_request' && 'Preview' || 'Up' }}
     runs-on: ubuntu-latest
+    # All run steps execute inside the Nix devShell (pulumi, node, just available).
     defaults:
       run:
         shell: nix develop --command bash -e {0}
     steps:
       - uses: actions/checkout@v4
 
+      # Install Nix with flakes enabled.
       - uses: DeterminateSystems/nix-installer-action@main
 
+      # Cache Nix store between runs (GitHub Actions cache, no FlakeHub account needed).
       - uses: DeterminateSystems/magic-nix-cache-action@main
         with:
           use-flakehub: false
@@ -44,10 +58,12 @@ jobs:
       - name: Install dependencies
         run: cd vps && npm ci
 
+      # PR: preview only -- shows what would change without applying.
       - name: Pulumi preview
         if: github.event_name == 'pull_request'
         run: cd vps && pulumi preview --stack prod
 
+      # Push to main: apply changes to the cluster.
       - name: Pulumi up
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: cd vps && pulumi up --yes --stack prod
