@@ -3,10 +3,18 @@ set fallback := true
 _default:
     @just --list
 
-# deploy k8s workloads via Pulumi
-up:
-    pulumi up --stack prod
+# install npm dependencies
+bootstrap:
+    npm ci
 
-# preview Pulumi changes
+# preview Pulumi changes (dry-run)
 preview:
     pulumi preview --stack prod
+
+# deploy k8s workloads via Pulumi
+deploy:
+    pulumi up --yes --stack prod
+
+# deploy interactively (with confirmation prompt)
+up:
+    pulumi up --stack prod

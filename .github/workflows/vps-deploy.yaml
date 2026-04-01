@@ -56,14 +56,14 @@ jobs:
           chmod 600 ~/.kube/config
 
       - name: Install dependencies
-        run: cd vps && npm ci
+        run: just vps bootstrap
 
       # PR: preview only -- shows what would change without applying.
       - name: Pulumi preview
         if: github.event_name == 'pull_request'
-        run: cd vps && pulumi preview --stack prod
+        run: just vps preview
 
       # Push to main: apply changes to the cluster.
       - name: Pulumi up
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: cd vps && pulumi up --yes --stack prod
+        run: just vps deploy
