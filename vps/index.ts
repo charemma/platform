@@ -223,6 +223,38 @@ new k8s.networking.v1.Ingress("argocd", {
   },
 }, { dependsOn: argoCD });
 
+// ── tailscale operator ──────────────────────────────────────────────────────
+// Exposes k8s Services into the Tailnet (no public NodePort/LoadBalancer).
+// Annotate a Service with tailscale.com/expose: "true" to give it a Tailnet IP.
+//
+// Prerequisites:
+//   1. Create an OAuth client in Tailscale Admin → Settings → OAuth clients
+//      Scopes: devices (write), auth-keys (write)
+//   2. pulumi config set --secret tailscaleClientId <id> --stack prod
+//      pulumi config set --secret tailscaleClientSecret <secret> --stack prod
+
+const tailscaleClientId = config.getSecret("tailscaleClientId");
+const tailscaleClientSecret = config.getSecret("tailscaleClientSecret");
+
+const tsNs = new k8s.core.v1.Namespace("tailscale", {
+  metadata: { name: "tailscale" },
+});
+
+if (tailscaleClientId && tailscaleClientSecret) {
+  new k8s.helm.v3.Release("tailscale-operator", {
+    name: "tailscale-operator",
+    chart: "tailscale-operator",
+    repositoryOpts: { repo: "https://pkgs.tailscale.com/helmcharts" },
+    namespace: tsNs.metadata.name,
+    values: {
+      oauth: {
+        clientId: tailscaleClientId,
+        clientSecret: tailscaleClientSecret,
+      },
+    },
+  }, { dependsOn: tsNs });
+}
+
 // ── cloudnative-pg ─────────────────────────────────────────────────────────
 // PostgreSQL operator for Kubernetes (CNCF Sandbox).
 // This deploys the operator only. Actual Cluster CRs live in the app repos.
