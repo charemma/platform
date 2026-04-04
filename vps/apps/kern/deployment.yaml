@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kern
+  namespace: kern
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kern
+  template:
+    metadata:
+      labels:
+        app: kern
+    spec:
+      containers:
+        - name: kern
+          image: ghcr.io/charemma/openclaw:latest
+          envFrom:
+            - secretRef:
+                name: kern-secrets
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+      volumes:
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: kern-workspace

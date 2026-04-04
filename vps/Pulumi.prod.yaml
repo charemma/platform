@@ -3,3 +3,7 @@ config:
     secure: AAABAPEs50MIxDGL93iJg5m7S/13q0ufcUyCMlcKRKtl+FeE7DdmK4sxKxSC2BON
   vps:githubToken:
     secure: AAABACPz1hxKqG48fXfEh2Zb+LOFmgWh/8sXQDGtSQlcJ01DU8qhMawmnXi51XsGbR3XBO4nndSNYKl6Tead6x+Wqox6MKiLYyV2/zP/15Xruyf74BrZ/0zBQAjHmLz/++xs7OfK8rw1gl0iyEYBnUQ4se1OXizbWr1Ya0E=
+  vps:tailscaleClientId:
+    secure: AAABAPeV0hm5erpMgQa9xkwKLGAHABAvc6oTCzfio2UIOPk9N6k38pvmvv+ekz5/2A==
+  vps:tailscaleClientSecret:
+    secure: AAABAAbQjjxbagJ/vsnGPvVydMu/anAp33/Aez6vu+E0CobIVM2voinaYdBvv7INiny/HeiEdmteIhb4XwbS4pCOpsclz2rWQ3fuoec4vl4s1k0kUah/RE3IXEPuXc8=

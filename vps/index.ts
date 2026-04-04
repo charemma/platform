@@ -251,6 +251,9 @@ if (tailscaleClientId && tailscaleClientSecret) {
         clientId: tailscaleClientId,
         clientSecret: tailscaleClientSecret,
       },
+      operatorConfig: {
+        defaultTags: ["tag:k8s-operator"],
+      },
     },
   }, { dependsOn: tsNs });
 }
