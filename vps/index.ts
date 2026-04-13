@@ -223,6 +223,52 @@ new k8s.networking.v1.Ingress("argocd", {
   },
 }, { dependsOn: argoCD });
 
+// ── monitoring (kube-prometheus-stack) ──────────────────────────────────────
+// Prometheus + Grafana + Node Exporter. Scrapes k3s cluster metrics and
+// the aiagent RPi (100.65.75.90:9100) via Tailscale.
+
+const monitoringNs = new k8s.core.v1.Namespace("monitoring", {
+  metadata: { name: "monitoring" },
+});
+
+const prometheus = new k8s.helm.v3.Release("kube-prometheus-stack", {
+  name: "kube-prometheus-stack",
+  chart: "kube-prometheus-stack",
+  version: "72.6.2",
+  repositoryOpts: { repo: "https://prometheus-community.github.io/helm-charts" },
+  namespace: monitoringNs.metadata.name,
+  values: {
+    grafana: {
+      adminPassword: "changeme-on-first-login",
+      ingress: {
+        enabled: true,
+        hosts: ["grafana.charemma.de"],
+        tls: [{ hosts: ["grafana.charemma.de"] }],
+        annotations: {
+          "traefik.ingress.kubernetes.io/router.entrypoints": "websecure",
+          "traefik.ingress.kubernetes.io/router.tls.certresolver": "letsencrypt",
+        },
+      },
+    },
+    prometheus: {
+      prometheusSpec: {
+        additionalScrapeConfigs: [
+          {
+            job_name: "aiagent",
+            static_configs: [
+              {
+                targets: ["100.65.75.90:9100"],
+                labels: { instance: "aiagent", host: "rpi5" },
+              },
+            ],
+            scrape_interval: "30s",
+          },
+        ],
+      },
+    },
+  },
+}, { dependsOn: monitoringNs });
+
 // ── cloudnative-pg ─────────────────────────────────────────────────────────
 // PostgreSQL operator for Kubernetes (CNCF Sandbox).
 // This deploys the operator only. Actual Cluster CRs live in the app repos.
