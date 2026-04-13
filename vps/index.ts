@@ -242,8 +242,8 @@ const prometheus = new k8s.helm.v3.Release("kube-prometheus-stack", {
       adminPassword: "changeme-on-first-login",
       ingress: {
         enabled: true,
-        hosts: ["grafana.charemma.de"],
-        tls: [{ hosts: ["grafana.charemma.de"] }],
+        hosts: ["monitoring.charemma.de"],
+        tls: [{ hosts: ["monitoring.charemma.de"] }],
         annotations: {
           "traefik.ingress.kubernetes.io/router.entrypoints": "websecure",
           "traefik.ingress.kubernetes.io/router.tls.certresolver": "letsencrypt",
