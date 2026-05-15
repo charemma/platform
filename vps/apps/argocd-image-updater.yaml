@@ -9,6 +9,19 @@ spec:
     chart: argocd-image-updater
     repoURL: https://argoproj.github.io/argo-helm
     targetRevision: "*"
+    helm:
+      values: |
+        config:
+          # Register ghcr.io so private images can be polled for new tags.
+          # Token lives in the ghcr-image-updater secret (argocd namespace);
+          # see schdondazeddl/docs/deployment-secrets.md for creation.
+          registries:
+            - name: GitHub Container Registry
+              api_url: https://ghcr.io
+              prefix: ghcr.io
+              ping: yes
+              credentials: secret:argocd/ghcr-image-updater#token
+              credsexpire: 0
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
