@@ -14,7 +14,7 @@ spec:
         config:
           # Register ghcr.io so private images can be polled for new tags.
           # Token lives in the ghcr-image-updater secret (argocd namespace);
-          # see schdondazeddl/docs/deployment-secrets.md for creation.
+          # see zeddl/docs/deployment-secrets.md for creation.
           registries:
             - name: GitHub Container Registry
               api_url: https://ghcr.io

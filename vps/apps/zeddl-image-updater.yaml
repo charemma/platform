@@ -1,23 +1,23 @@
 apiVersion: argocd-image-updater.argoproj.io/v1alpha1
 kind: ImageUpdater
 metadata:
-  name: schdondazeddl
+  name: zeddl
   namespace: argocd
 spec:
   applicationRefs:
-    - namePattern: schdondazeddl
+    - namePattern: zeddl
       images:
         - alias: app
-          imageName: ghcr.io/charemma/schdondazeddl:latest
+          imageName: ghcr.io/charemma/zeddl:latest
           commonUpdateSettings:
             updateStrategy: newest-build
           manifestTargets:
             kustomize:
-              name: ghcr.io/charemma/schdondazeddl
+              name: ghcr.io/charemma/zeddl
       writeBackConfig:
         method: git:secret:argocd/charemma-github
         gitConfig:
-          repository: https://github.com/charemma/schdondazeddl
+          repository: https://github.com/charemma/zeddl
           branch: main
           writeBackTarget: "kustomization:."
   writeBackConfig:
