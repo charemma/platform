@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: attic
+  namespace: attic
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+    traefik.ingress.kubernetes.io/buffering-maxrequestbodybytes: "0"
+    traefik.ingress.kubernetes.io/buffering-maxresponsebodybytes: "0"
+spec:
+  rules:
+    - host: nix.charemma.de
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: attic
+                port:
+                  number: 8080
+  tls:
+    - hosts:
+        - nix.charemma.de

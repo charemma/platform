@@ -18,6 +18,8 @@
             nodejs
             jq
             just
+            kubectl
+            argocd
           ];
         };
       });

@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: kube-prometheus-stack
+    repoURL: https://prometheus-community.github.io/helm-charts
+    targetRevision: 72.6.2
+    helm:
+      values: |
+        grafana:
+          adminPassword: changeme-on-first-login
+          ingress:
+            enabled: true
+            hosts:
+              - monitoring.charemma.de
+            tls:
+              - hosts:
+                  - monitoring.charemma.de
+            annotations:
+              traefik.ingress.kubernetes.io/router.entrypoints: websecure
+              traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+        prometheus:
+          prometheusSpec:
+            additionalScrapeConfigs:
+              - job_name: aiagent
+                static_configs:
+                  - targets:
+                      - 100.65.75.90:9100
+                    labels:
+                      instance: aiagent
+                      host: rpi5
+                scrape_interval: 30s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

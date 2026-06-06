@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: attic
+  namespace: attic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: attic
+  template:
+    metadata:
+      labels:
+        app: attic
+    spec:
+      containers:
+        - name: attic
+          image: ghcr.io/zhaofengli/attic:latest
+          args:
+            - -f
+            - /etc/attic/server.toml
+            - --mode
+            - monolithic
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: attic-credentials
+          volumeMounts:
+            - name: config
+              mountPath: /etc/attic
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: attic-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: attic-data
