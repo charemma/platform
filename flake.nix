@@ -20,6 +20,7 @@
             just
             kubectl
             argocd
+            kubernetes-helm
           ];
         };
       });
