@@ -22,7 +22,7 @@ ArgoCD reconciles everything in `gitops/`.
 ## Getting started
 
 ```bash
-direnv allow    # nix dev shell: pulumi, node, just, jq
+direnv allow    # nix dev shell: pulumi, node, just, jq, kubectl, argocd, helm
 just            # list commands
 ```
 

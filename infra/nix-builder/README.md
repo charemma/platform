@@ -13,14 +13,14 @@ Spins up cheap Ampere ARM instances (CAX series) for cross-compiling NixOS image
 ## Setup
 
 ```bash
-# from repo root -- enter dev shell
+# from platform repo root -- enter dev shell
 direnv allow
 
 # install node dependencies
-just init
+just builder::init
 
-# initialize pulumi stack and set hetzner token
-cd nix-builder
+# initialize pulumi stack and set hetzner token (run inside infra/nix-builder/)
+cd infra/nix-builder
 pulumi stack init dev
 pulumi config set hcloud:token --secret
 ```
@@ -29,20 +29,18 @@ The token is stored encrypted in `Pulumi.dev.yaml` -- never in plain text.
 
 ## Usage
 
-All commands from the repo root:
+All commands from the platform repo root, namespaced by `builder::`:
 
 ```bash
-just up       # spin up builders
-just down     # tear down builders
-just status   # show running builders as JSON
-just plan     # preview changes
+just builder::up        # spin up builders
+just builder::down      # tear down builders
+just builder::status    # show running builders as JSON
+just builder::preview   # preview changes
 ```
 
-Wire builders into nixos-config:
-
-```bash
-just status | (cd ~/code/charemma/nixos-config && just add-builder)
-```
+Wire builders into nixos-config: take the JSON output from `just builder::status`
+and feed it into nixos-config (a thin `add-builder` recipe there is on the TODO
+list -- for now, parse manually with `jq` and update `/etc/nix/machines`).
 
 ## Configuration
 

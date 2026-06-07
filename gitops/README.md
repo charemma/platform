@@ -20,11 +20,11 @@ the chicken-and-egg secrets; ArgoCD then reconciles everything under `apps/`.
 Applications in `apps/` are of two kinds:
 
 - **Helm-sourced** -- `source.chart` + `source.repoURL` pointing at an upstream
-  chart repo. Used for cnpg, kube-prometheus-stack, argocd-image-updater.
+  chart repo. Used for argocd-image-updater (and future Helm-installed apps).
 - **Path-sourced** -- `source.path` pointing at a directory in this repo or in
-  an external app repo. Used for attic (here, `manifests/attic/`) and for the
-  app pointers (charemma-web, ikno-web, zeddl -- each reads `k8s/` from its
-  own repo).
+  an external app repo. Used for attic (here, `manifests/attic/` -- slated to
+  move to its own repo) and for the app pointers (charemma-web, ikno-web,
+  zeddl -- each reads `k8s/` from its own repo).
 
 ## Bootstrap secrets (seeded by Pulumi, not in this directory)
 

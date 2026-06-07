@@ -44,14 +44,14 @@ yet in nixos-config; the README there references it but it was never written).
 **`infra/vps/`** (stack: `prod`). ~100 lines. Does *only* what cannot be done
 via GitOps because of chicken-and-egg ordering:
 
-1. Installs ArgoCD via Helm (`argo-cd` chart) + creates the ingress for
-   `argocd.charemma.de`.
+1. Installs ArgoCD via Helm (`argo-cd` chart, pinned at 9.5.0) + creates the
+   ingress for `argocd.charemma.de`.
 2. Seeds bootstrap secrets:
    - `argocd/charemma-github` -- PAT for argocd-image-updater write-back
    - `attic/attic-credentials` -- HS256 JWT signer secret for the attic cache
 3. Creates one ArgoCD root `Application` pointing at `gitops/apps/` in this repo.
 
-Everything else (attic deployment, prometheus, cnpg, external-dns, app pointers)
+Everything else (attic deployment, app pointers, future workloads)
 lives in `gitops/` and is reconciled by ArgoCD.
 
 ## Architecture: gitops/
@@ -60,8 +60,6 @@ lives in `gitops/` and is reconciled by ArgoCD.
 gitops/
 ├── apps/                       ArgoCD Application CRs (root-app reads this dir)
 │   ├── attic.yaml              path-sourced: ../manifests/attic
-│   ├── cnpg.yaml               Helm-sourced: cloudnative-pg
-│   ├── kube-prometheus-stack.yaml  Helm-sourced
 │   ├── argocd-image-updater.yaml   Helm-sourced
 │   ├── charemma-web.yaml       points at external repo's k8s/ dir
 │   ├── ikno-web.yaml           same
@@ -107,9 +105,13 @@ secrets: `PULUMI_ACCESS_TOKEN`, `KUBECONFIG`.
 - **sops** for both OS-side (`nixos-config`) and cluster-side (`gitops/`)
   secrets. Generic sops + age, no NixOS-specific binding.
 - **Go**: when `infra/vps/` shrinks further, may rewrite from TypeScript to Go.
-- **Repo rename**: this repo will be renamed to `platform` on GitHub (`gh repo
-  rename platform`). All `repoURL: github.com/charemma/platform` references in
-  `infra/vps/index.ts` and `gitops/` already point at the new name.
+- **attic auslagern**: move `gitops/manifests/attic/` to its own `charemma/attic-k8s`
+  repo so platform/ only owns Application CRs. Also pin image (today `:latest`)
+  and add resources requests/limits.
+- **Monitoring redeploy**: kube-prometheus-stack was removed during migration;
+  bring back with PVCs + slim helm values.
+- **DNS automation**: external-dns + Cloudflare-token bootstrap secret.
+- **ArgoCD-Image-Updater -> Renovate**: less polling magic, image bumps as PRs.
 
 ## Related repos
 
