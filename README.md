@@ -1,7 +1,3 @@
-<p align="right">
-  <img src="docs/logo.svg" width="80" alt="platform"/>
-</p>
-
 # platform
 
 My home-ops monorepo. Cloud-side infrastructure and GitOps-managed cluster
