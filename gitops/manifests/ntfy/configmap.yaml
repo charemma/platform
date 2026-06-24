@@ -16,4 +16,6 @@ data:
     attachment-expiry-duration: 3h
     auth-file: /var/lib/ntfy/user.db
     auth-default-access: deny-all
+    web-root: disable
+    enable-signup: false
     log-level: info
