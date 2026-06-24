@@ -8,10 +8,12 @@ data:
     base-url: https://ntfy.charemma.de
     listen-http: ":80"
     behind-proxy: true
-    cache-file: /var/cache/ntfy/cache.db
+    cache-file: /var/lib/ntfy/cache.db
     cache-duration: 12h
-    attachment-cache-dir: /var/cache/ntfy/attachments
+    attachment-cache-dir: /var/lib/ntfy/attachments
     attachment-total-size-limit: 1G
     attachment-file-size-limit: 15M
     attachment-expiry-duration: 3h
+    auth-file: /var/lib/ntfy/user.db
+    auth-default-access: deny-all
     log-level: info

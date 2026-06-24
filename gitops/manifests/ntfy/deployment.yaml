@@ -25,7 +25,7 @@ spec:
             - name: config
               mountPath: /etc/ntfy
             - name: cache
-              mountPath: /var/cache/ntfy
+              mountPath: /var/lib/ntfy
           readinessProbe:
             httpGet:
               path: /v1/health
