@@ -72,7 +72,7 @@ for (const [name, cfg] of Object.entries(builders)) {
       serverType: cfg.serverType,
       image: "ubuntu-24.04",
       location,
-      sshKeys: [adminSshKey.id.apply((id) => String(id))],
+      sshKeys: [adminSshKey.apply((k) => String(k.id))],
       userData: cloudConfig,
       firewallIds: [firewall.id.apply((id) => Number(id))],
     });
