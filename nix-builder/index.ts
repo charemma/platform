@@ -46,6 +46,9 @@ runcmd:
     trusted-users = root nix
     EOF
   - systemctl restart nix-daemon
+  # Expose nix tools on the non-interactive SSH PATH (/usr/local/bin is in
+  # /etc/environment) so remote builds can find nix-daemon over ssh-ng.
+  - ln -sf /nix/var/nix/profiles/default/bin/* /usr/local/bin/
 `;
 
 const firewall = new hcloud.Firewall("nix-builder", {
