@@ -1,5 +1,8 @@
 set fallback := true
 
+_default:
+    @just --list
+
 # Spin up all configured builders
 up:
     pulumi up --yes
@@ -15,6 +18,16 @@ preview:
 # Show running builders as JSON
 status:
     @pulumi stack output output 2>/dev/null | jq . || echo "[]"
+
+# Private key path the nix-daemon uses on build clients (deployed via sops-nix).
+builder_key := "/etc/nix/nix-builder_ed25519"
+
+# Print a NIX_BUILDERS string for the running builders.
+# Usage: export NIX_BUILDERS="$(just nix-builder::builders-env)"
+builders-env:
+    @pulumi stack output output 2>/dev/null \
+      | jq -r --arg key "{{ builder_key }}" \
+        'map("ssh-ng://\(.user)@\(.host) \(.arch) \($key) \(.cores) 1 - - -") | join(";")'
 
 # Install deps and init stack
 init:

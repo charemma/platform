@@ -4,11 +4,21 @@ import * as fs from "fs";
 
 const config = new pulumi.Config();
 const location = config.get("location") ?? "nbg1";
-const sshPublicKeyPath = config.get("sshPublicKeyPath") ?? "~/.ssh/id_ed25519.pub";
+
+// Public key of the dedicated builder key pair. The matching private key is
+// used by the nix-daemon on build clients (managed via sops-nix in
+// nixos-config) and never lives in this repo.
+const sshPublicKeyPath = config.get("sshPublicKeyPath") ?? "keys/builder_ed25519.pub";
 const sshPublicKey = fs.readFileSync(
   sshPublicKeyPath.replace("~", process.env.HOME!),
   "utf-8",
 ).trim();
+
+// Existing personal SSH key in the Hetzner project, used for root admin access.
+// Referenced (not re-uploaded) to avoid the "SSH key not unique" uniqueness
+// error Hetzner returns when the same public key is uploaded twice.
+const adminSshKeyName = config.get("adminSshKeyName") ?? "charemma@macbook";
+const adminSshKey = hcloud.getSshKeyOutput({ name: adminSshKeyName });
 
 interface BuilderConfig {
   serverType: string;
@@ -19,6 +29,8 @@ interface BuilderConfig {
 
 const builders: Record<string, BuilderConfig> = config.requireObject("builders");
 
+// The dedicated builder key authorizes the `nix` user that remote builds
+// connect as (ssh-ng://nix@host). Root stays reachable via the personal key.
 const cloudConfig = `#cloud-config
 users:
   - name: nix
@@ -35,11 +47,6 @@ runcmd:
     EOF
   - systemctl restart nix-daemon
 `;
-
-const sshKey = new hcloud.SshKey("nix-builder", {
-  name: "nix-builder",
-  publicKey: sshPublicKey,
-});
 
 const firewall = new hcloud.Firewall("nix-builder", {
   name: "nix-builder",
@@ -62,7 +69,7 @@ for (const [name, cfg] of Object.entries(builders)) {
       serverType: cfg.serverType,
       image: "ubuntu-24.04",
       location,
-      sshKeys: [sshKey.id],
+      sshKeys: [adminSshKey.id.apply((id) => String(id))],
       userData: cloudConfig,
       firewallIds: [firewall.id.apply((id) => Number(id))],
     });
