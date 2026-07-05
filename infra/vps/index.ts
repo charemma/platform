@@ -76,6 +76,17 @@ new k8s.core.v1.Secret("attic-credentials", {
   stringData: { ATTIC_SERVER_TOKEN_HS256_SECRET_BASE64: atticJwtSecret },
 }, { dependsOn: atticNs });
 
+// Grafana admin credentials, consumed by kube-prometheus-stack in gitops/.
+const grafanaAdminPassword = config.requireSecret("grafanaAdminPassword");
+const monitoringNs = new k8s.core.v1.Namespace("monitoring", {
+  metadata: { name: "monitoring" },
+});
+
+new k8s.core.v1.Secret("grafana-admin", {
+  metadata: { name: "grafana-admin", namespace: monitoringNs.metadata.name },
+  stringData: { username: "admin", password: grafanaAdminPassword },
+}, { dependsOn: monitoringNs });
+
 // ── root application ───────────────────────────────────────────────────────
 // Hands the rest of the cluster over to ArgoCD.
 

@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: kube-prometheus-stack
+    repoURL: https://prometheus-community.github.io/helm-charts
+    targetRevision: 67.3.0
+    helm:
+      values: |
+        grafana:
+          admin:
+            existingSecret: grafana-admin
+            userKey: username
+            passwordKey: password
+          ingress:
+            enabled: true
+            annotations:
+              traefik.ingress.kubernetes.io/router.entrypoints: websecure
+              traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+            hosts:
+              - monitoring.charemma.de
+            tls:
+              - hosts:
+                  - monitoring.charemma.de
+
+        prometheus:
+          prometheusSpec:
+            additionalScrapeConfigs:
+              - job_name: airdata-particulate
+                static_configs:
+                  - targets:
+                      - aiagent.tail48929d.ts.net:8000
+                scrape_interval: 60s
+
+        # Lightweight defaults for a single-node k3s VPS
+        alertmanager:
+          enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
