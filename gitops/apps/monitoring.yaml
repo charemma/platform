@@ -16,6 +16,12 @@ spec:
             existingSecret: grafana-admin
             userKey: username
             passwordKey: password
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              memory: 192Mi
           ingress:
             enabled: true
             annotations:
@@ -29,6 +35,9 @@ spec:
 
         prometheus:
           prometheusSpec:
+            # Short retention: keeps memory-resident block count low on a 4GB vps.
+            # Adjust upward once vps is right-sized.
+            retention: 3d
             resources:
               requests:
                 memory: 256Mi
@@ -50,6 +59,12 @@ spec:
         prometheusOperator:
           admissionWebhooks:
             enabled: false
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
 
         # Disable everything we don't need
         alertmanager:

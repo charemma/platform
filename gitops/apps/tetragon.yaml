@@ -13,20 +13,37 @@ spec:
       values: |
         # Metrics endpoint is enabled by default. The ServiceMonitor is picked up
         # by kube-prometheus-stack running in the monitoring namespace.
+        # Tight limits so the DaemonSet fits on a 4GB vps alongside
+        # k3s + kube-prometheus + argocd. Steady-state usage with a
+        # handful of tracing policies is well below 256Mi.
         tetragon:
           prometheus:
             serviceMonitor:
               enabled: true
           resources:
             requests:
-              cpu: 100m
-              memory: 128Mi
+              cpu: 50m
+              memory: 64Mi
             limits:
-              memory: 512Mi
+              memory: 256Mi
         tetragonOperator:
           prometheus:
             serviceMonitor:
               enabled: true
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              memory: 96Mi
+        # export-stdout sidecar (top-level, not under tetragon).
+        export:
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              memory: 96Mi
         # export mode defaults to "stdout" -- JSON events land on the
         # export-stdout sidecar. A future Loki + alloy setup will ship these.
   destination:
