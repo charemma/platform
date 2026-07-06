@@ -35,12 +35,13 @@ spec:
               limits:
                 memory: 512Mi
             additionalScrapeConfigs:
-              - job_name: airdata-particulate
+              - job_name: prometheus
                 static_configs:
                   - targets:
                       - aiagent.tail48929d.ts.net:8000
+                      - aiagent.tail48929d.ts.net:9100
+                      - north.tail48929d.ts.net:9100
                 scrape_interval: 60s
-
         prometheusOperator:
           admissionWebhooks:
             enabled: false
@@ -49,7 +50,7 @@ spec:
         alertmanager:
           enabled: false
         nodeExporter:
-          enabled: false
+          enabled: true
         kubeStateMetrics:
           enabled: false
         defaultRules:
