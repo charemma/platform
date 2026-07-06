@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tetragon
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: tetragon
+    repoURL: https://helm.cilium.io
+    targetRevision: 1.7.0
+    helm:
+      values: |
+        # Metrics endpoint is enabled by default. The ServiceMonitor is picked up
+        # by kube-prometheus-stack running in the monitoring namespace.
+        tetragon:
+          prometheus:
+            serviceMonitor:
+              enabled: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+        tetragonOperator:
+          prometheus:
+            serviceMonitor:
+              enabled: true
+        # export mode defaults to "stdout" -- JSON events land on the
+        # export-stdout sidecar. A future Loki + alloy setup will ship these.
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tetragon
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
