@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/charemma/infra
+    repoURL: https://github.com/charemma/platform
     targetRevision: HEAD
     path: gitops/manifests/tetragon-policies
   destination:
