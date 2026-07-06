@@ -42,7 +42,7 @@ spec:
                       - aiagent.tail48929d.ts.net:9100
                       - north.tail48929d.ts.net:9100
                 scrape_interval: 60s
-              - job_name: aiagent-app
+              - job_name: airdata-particulate
                 static_configs:
                   - targets:
                       - aiagent.tail48929d.ts.net:8000
