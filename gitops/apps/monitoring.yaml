@@ -35,12 +35,17 @@ spec:
               limits:
                 memory: 512Mi
             additionalScrapeConfigs:
-              - job_name: prometheus
+              - job_name: node
+                static_configs:
+                  - targets:
+                      - localhost:9100
+                      - aiagent.tail48929d.ts.net:9100
+                      - north.tail48929d.ts.net:9100
+                scrape_interval: 60s
+              - job_name: aiagent-app
                 static_configs:
                   - targets:
                       - aiagent.tail48929d.ts.net:8000
-                      - aiagent.tail48929d.ts.net:9100
-                      - north.tail48929d.ts.net:9100
                 scrape_interval: 60s
         prometheusOperator:
           admissionWebhooks:
@@ -50,7 +55,7 @@ spec:
         alertmanager:
           enabled: false
         nodeExporter:
-          enabled: true
+          enabled: false
         kubeStateMetrics:
           enabled: false
         defaultRules:
