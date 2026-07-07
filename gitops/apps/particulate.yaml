@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/charemma/airdata
+    repoURL: https://github.com/charemma/monorepo
     targetRevision: HEAD
-    path: particulate/k8s
+    path: airdata/particulate/k8s
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
