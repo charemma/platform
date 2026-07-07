@@ -19,9 +19,9 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 96Mi
+              memory: 64Mi
             limits:
-              memory: 192Mi
+              memory: 128Mi
           ingress:
             enabled: true
             annotations:
@@ -35,14 +35,13 @@ spec:
 
         prometheus:
           prometheusSpec:
-            # Short retention: keeps memory-resident block count low on a 4GB vps.
-            # Adjust upward once vps is right-sized.
-            retention: 3d
+            # 4GB vps needs prometheus under 300MB to leave room for k3s + argocd + tetragon.
+            retention: 2d
             resources:
               requests:
-                memory: 256Mi
+                memory: 192Mi
               limits:
-                memory: 512Mi
+                memory: 320Mi
             additionalScrapeConfigs:
               - job_name: node
                 static_configs:
@@ -62,9 +61,9 @@ spec:
           resources:
             requests:
               cpu: 20m
-              memory: 64Mi
+              memory: 32Mi
             limits:
-              memory: 128Mi
+              memory: 64Mi
 
         # Disable everything we don't need
         alertmanager:
