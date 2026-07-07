@@ -16,6 +16,22 @@ spec:
             existingSecret: grafana-admin
             userKey: username
             passwordKey: password
+          # PVC so user prefs, alerts, and any locally-created dashboards survive pod restarts.
+          # Canonical dashboards should be provisioned via ConfigMaps (grafana_dashboard=1 label)
+          # so they live in git and survive PVC loss.
+          persistence:
+            enabled: true
+            storageClassName: local-path
+            size: 1Gi
+          sidecar:
+            dashboards:
+              enabled: true
+              label: grafana_dashboard
+              labelValue: "1"
+              searchNamespace: ALL
+              folderAnnotation: grafana_folder
+              provider:
+                foldersFromFilesStructure: true
           resources:
             requests:
               cpu: 50m
@@ -35,13 +51,23 @@ spec:
 
         prometheus:
           prometheusSpec:
-            # 4GB vps needs prometheus under 300MB to leave room for k3s + argocd + tetragon.
-            retention: 2d
+            # 4GB vps needs prometheus under 300MB in-memory. Retention is disk-based (PVC),
+            # so 7d does not blow up RAM as long as the active series count stays low.
+            retention: 7d
             resources:
               requests:
                 memory: 192Mi
               limits:
                 memory: 320Mi
+            # PVC on k3s local-path-provisioner so metrics history survives pod restart.
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: local-path
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 5Gi
             additionalScrapeConfigs:
               - job_name: node
                 static_configs:
