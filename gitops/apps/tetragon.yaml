@@ -17,6 +17,19 @@ spec:
         # k3s + kube-prometheus + argocd. Steady-state usage with a
         # handful of tracing policies is well below 256Mi.
         tetragon:
+          # Exclude arm64 nodes (aiagent RPi5). Tetragon's BPF ring buffer is hardcoded
+          # to 4KiB which does not align with the RPi5 kernel's 16KiB page size, causing
+          # the base sensor to fail loading. Revisit once tetragon supports 16K pages
+          # or the RPi kernel is rebuilt with 4K pages.
+          daemonSetOverrides:
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                        - key: kubernetes.io/arch
+                          operator: In
+                          values: ["amd64"]
           prometheus:
             serviceMonitor:
               enabled: true
