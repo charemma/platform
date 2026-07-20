@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: monitoring
+
+# Dashboards are shipped as ConfigMaps with the grafana_dashboard=1 label so
+# the kube-prometheus-stack grafana sidecar imports them automatically.
+# disableNameSuffixHash keeps the ConfigMap name stable across changes so
+# grafana's sidecar reload is idempotent instead of leaving orphaned CMs.
+configMapGenerator:
+  - name: dashboard-node-uptime
+    files:
+      - node-uptime.json=dashboards/node-uptime.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana_dashboard: "1"
+      annotations:
+        grafana_folder: Infra
