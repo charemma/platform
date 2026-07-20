@@ -48,6 +48,137 @@ spec:
             tls:
               - hosts:
                   - monitoring.charemma.de
+          # ntfy publish credentials for grafana webhook contact point.
+          # See gitops/manifests/observability/SETUP.md for one-time setup:
+          # 1) ntfy user add + ntfy access grants
+          # 2) kubectl create secret generic ntfy-grafana-auth ...
+          extraSecretMounts:
+            - name: ntfy-auth
+              secretName: ntfy-grafana-auth
+              defaultMode: 0440
+              mountPath: /etc/secrets/ntfy
+              readOnly: true
+          # Grafana unified alerting: rules + contact points + notification policies
+          # provisioned from these files. Reloaded on pod restart.
+          alerting:
+            contactpoints.yaml:
+              apiVersion: 1
+              contactPoints:
+                - orgId: 1
+                  name: ntfy-kitchen
+                  receivers:
+                    - uid: ntfy-kitchen-webhook
+                      type: webhook
+                      settings:
+                        url: https://ntfy.charemma.de/kitchen-power
+                        httpMethod: POST
+                        basicAuthUser: grafana
+                        # $__file reads secret at runtime; keeps password out of ConfigMap.
+                        basicAuthPassword: $__file{/etc/secrets/ntfy/password}
+                        # Custom title/message templates so ntfy shows something readable
+                        # instead of grafana's default JSON blob.
+                        title: '{{ .CommonAnnotations.summary }}'
+                        message: |
+                          Status: {{ .Status }}
+                          {{ range .Alerts }}
+                          {{ .Annotations.description }}
+                          Since: {{ .StartsAt.Format "2006-01-02 15:04" }}
+                          {{ end }}
+            policies.yaml:
+              apiVersion: 1
+              policies:
+                - orgId: 1
+                  receiver: ntfy-kitchen
+                  group_by: [alertname]
+                  group_wait: 10s
+                  group_interval: 1m
+                  # Re-fire every hour while still firing so a persistent outage
+                  # keeps reminding until acknowledged (fridge risk stays visible).
+                  repeat_interval: 1h
+            rules.yaml:
+              apiVersion: 1
+              groups:
+                - orgId: 1
+                  name: kitchen-uptime
+                  folder: Infra
+                  interval: 1m
+                  rules:
+                    - uid: aiagent-down-5m
+                      title: Kitchen offline (>5min)
+                      condition: C
+                      data:
+                        - refId: A
+                          relativeTimeRange: {from: 300, to: 0}
+                          datasourceUid: prometheus
+                          model:
+                            expr: up{job="node", instance="aiagent.tail48929d.ts.net:9100"}
+                            intervalMs: 15000
+                            maxDataPoints: 43200
+                            refId: A
+                        - refId: B
+                          datasourceUid: __expr__
+                          model:
+                            conditions: []
+                            datasource: {type: __expr__, uid: __expr__}
+                            expression: A
+                            reducer: last
+                            refId: B
+                            type: reduce
+                        - refId: C
+                          datasourceUid: __expr__
+                          model:
+                            conditions: []
+                            datasource: {type: __expr__, uid: __expr__}
+                            expression: $B == 0
+                            refId: C
+                            type: math
+                      noDataState: Alerting
+                      execErrState: Error
+                      for: 5m
+                      labels:
+                        severity: warning
+                        priority: "3"
+                      annotations:
+                        summary: Kitchen offline (>5min)
+                        description: aiagent unreachable for over 5 minutes -- possible power outage. Fridge safe up to ~4h.
+                    - uid: aiagent-down-4h
+                      title: Kitchen offline (>4h) -- fridge check
+                      condition: C
+                      data:
+                        - refId: A
+                          relativeTimeRange: {from: 300, to: 0}
+                          datasourceUid: prometheus
+                          model:
+                            expr: up{job="node", instance="aiagent.tail48929d.ts.net:9100"}
+                            intervalMs: 15000
+                            maxDataPoints: 43200
+                            refId: A
+                        - refId: B
+                          datasourceUid: __expr__
+                          model:
+                            conditions: []
+                            datasource: {type: __expr__, uid: __expr__}
+                            expression: A
+                            reducer: last
+                            refId: B
+                            type: reduce
+                        - refId: C
+                          datasourceUid: __expr__
+                          model:
+                            conditions: []
+                            datasource: {type: __expr__, uid: __expr__}
+                            expression: $B == 0
+                            refId: C
+                            type: math
+                      noDataState: Alerting
+                      execErrState: Error
+                      for: 4h
+                      labels:
+                        severity: critical
+                        priority: "5"
+                      annotations:
+                        summary: Kitchen offline >4h -- CHECK FRIDGE
+                        description: aiagent down for over 4h. Fridge contents likely at risk -- inspect before consuming.
 
         prometheus:
           prometheusSpec:
