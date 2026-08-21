@@ -9,7 +9,11 @@ data:
     listen-http: ":80"
     behind-proxy: true
     cache-file: /var/lib/ntfy/cache.db
-    cache-duration: 12h
+    # 7d, not the 12h default: the phone client is always subscribed and
+    # gets live pushes, but the web client only pulls history on open --
+    # with 12h it missed overnight jobscout notifications entirely once
+    # the browser was closed that long (2026-08-21 incident).
+    cache-duration: 168h
     attachment-cache-dir: /var/lib/ntfy/attachments
     attachment-total-size-limit: 1G
     attachment-file-size-limit: 15M
