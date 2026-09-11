@@ -66,6 +66,8 @@ ArgoCD Applications live in `gitops/apps/`. Today this is:
 | `ikno-web`                   | path → `ikno-web` repo k8s/                | Frontend for [ikno](https://github.com/charemma/ikno) (workday recap CLI/API) |
 | `zeddl`                      | path → `zeddl` repo k8s/                   | TypeScript service                            |
 | `attic`                      | `gitops/manifests/attic/`                  | Nix binary cache (`nixos-config` pushes here) |
+| `ollama`                     | `gitops/manifests/ollama/`                 | Local LLM serving on aiagent (arm64, always-on) |
+| `open-webui`                 | `gitops/manifests/open-webui/`             | Chat UI at `chat.charemma.de`, points at Ollama |
 | `argocd-image-updater`       | upstream chart                             | Auto-bumps image tags when new versions land  |
 | `charemma-web-image-updater` | Image-updater Application CR               | Per-app updater config                        |
 | `zeddl-image-updater`        | Image-updater Application CR               | Per-app updater config                        |

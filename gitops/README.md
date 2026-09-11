@@ -9,6 +9,8 @@ ArgoCD-managed state for the k3s cluster on `charemma.de`. Lives inside the
 apps/        ArgoCD Application CRs (synced by the root Application in infra/vps)
 manifests/   Raw K8s YAML for workloads without an upstream Helm chart
   attic/     Nix binary cache
+  ollama/    Local LLM serving on aiagent (toleration dedicated=home)
+  open-webui/ Chat UI on the VPS, backed by the aiagent Ollama
 ```
 
 ## How it gets in
