@@ -39,7 +39,7 @@ spec:
             - name: OLLAMA_HOST
               value: 100.65.75.90:11434
             - name: OLLAMA_KEEP_ALIVE
-              value: "5m"
+              value: "-1"
           volumeMounts:
             - name: models
               mountPath: /root/.ollama
