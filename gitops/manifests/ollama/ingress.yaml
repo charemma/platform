@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ollama
+  namespace: ollama
+  annotations:
+    # Plain HTTP on the default entrypoint: the DNS record points at a
+    # tailnet-only address (100.x CGNAT), so Let's Encrypt HTTP-01 cannot
+    # validate a cert. Traffic is already encrypted by WireGuard inside the
+    # tailnet, so no TLS is needed here.
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: llm.charemma.de
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ollama
+                port:
+                  number: 11434
