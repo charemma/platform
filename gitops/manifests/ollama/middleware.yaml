@@ -1,0 +1,12 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: tailnet-allowlist
+  namespace: ollama
+spec:
+  # Only Tailscale peers (100.64.0.0/10 CGNAT range) may reach this route.
+  # Enforcement happens at the edge, so the API stays private even if the
+  # DNS record or an underlying path ever points somewhere reachable.
+  ipWhiteList:
+    sourceRange:
+      - 100.64.0.0/10

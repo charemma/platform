@@ -7,11 +7,13 @@ metadata:
     # Plain HTTP on the default entrypoint: the DNS record points at a
     # tailnet-only address (100.x CGNAT), so Let's Encrypt HTTP-01 cannot
     # validate a cert. Traffic is already encrypted by WireGuard inside the
-    # tailnet, so no TLS is needed here.
+    # tailnet, so no TLS is needed here. The IP allowlist middleware makes
+    # the tailnet-only guarantee independent of the DNS record.
     traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.middlewares: ollama-tailnet-allowlist@kubernetescrd
 spec:
   rules:
-    - host: llm.charemma.de
+    - host: gpt.charemma.de
       http:
         paths:
           - path: /
