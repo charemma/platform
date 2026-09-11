@@ -22,14 +22,22 @@ spec:
         - key: dedicated
           value: home
           effect: NoSchedule
+      # hostNetwork + OLLAMA_HOST bound to the node's Tailscale IP make the
+      # API reachable ONLY via the tailnet (100.64/10 CGNAT, not publicly
+      # routable). aiagent has no public IP at all, so there is nothing to
+      # expose -- no ingress, no allowlist, no LoadBalancer involved.
+      # gpt.charemma.de just points its A record at 100.65.75.90.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: ollama
           image: ollama/ollama:latest
           ports:
             - containerPort: 11434
+              hostPort: 11434
           env:
             - name: OLLAMA_HOST
-              value: 0.0.0.0
+              value: 100.65.75.90:11434
             - name: OLLAMA_KEEP_ALIVE
               value: "5m"
           volumeMounts:
