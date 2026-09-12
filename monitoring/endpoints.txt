@@ -1,0 +1,8 @@
+# Public endpoints probed by the uptime check (one URL per line).
+# Expected: HTTP 2xx/3xx. Lines starting with # are ignored.
+https://charemma.de/
+https://zeddl.charemma.de/
+https://ikno.charemma.de/
+https://argocd.charemma.de/
+https://nix.charemma.de/
+https://ntfy.charemma.de/v1/health

@@ -1,0 +1,46 @@
+# External blackbox monitoring for the public endpoints.
+#
+# Runs OUTSIDE the cluster on purpose: the in-cluster monitoring stack
+# lives on the same VPS as the workloads and cannot alert when the
+# cluster itself is broken (2026-09-11 incident: firewall change cut
+# pods off from the k8s API, every site served 404 for hours, nothing
+# alerted). Alerts go to a topic on the public ntfy.sh instance for the
+# same reason -- the self-hosted ntfy would be down too.
+#
+# Deliberately NOT using the Nix devShell here: this runs every 5
+# minutes and only needs curl + just, so installing the full toolchain
+# each run would be pure waste.
+#
+# Required GitHub repo secrets:
+#   NTFY_EMERGENCY_TOPIC -- topic name on ntfy.sh the phone subscribes to
+#
+# Note: GitHub cron is best-effort; runs can be delayed by several
+# minutes under load. Good enough for "the site has been down for a
+# while", not for second-level SLOs.
+
+name: Uptime checks
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: extractions/setup-just@v2
+
+      - name: Check endpoints
+        run: just uptime check
+
+      - name: Alert via ntfy.sh
+        if: failure()
+        env:
+          NTFY_EMERGENCY_TOPIC: ${{ secrets.NTFY_EMERGENCY_TOPIC }}
+        run: just uptime alert

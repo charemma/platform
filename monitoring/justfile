@@ -1,0 +1,41 @@
+# Blackbox uptime checks for the public endpoints, independent of the
+# cluster. Run by .github/workflows/uptime.yaml every 5 minutes and
+# locally via `just uptime::check`.
+
+set fallback := true
+
+endpoints_file := source_directory() / "endpoints.txt"
+failures_file := source_directory() / "failures.txt"
+
+# Probe every endpoint in endpoints.txt. Writes failing endpoints to
+# failures.txt and exits non-zero if any endpoint is down.
+check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    : > "{{ failures_file }}"
+    while read -r url; do
+        [[ -z "$url" || "$url" == \#* ]] && continue
+        code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 \
+            --retry 2 --retry-delay 5 "$url" 2>/dev/null || true)
+        code="${code:-000}"
+        if [[ "$code" -ge 200 && "$code" -lt 400 ]]; then
+            echo "ok   $code $url"
+        else
+            echo "FAIL $code $url" | tee -a "{{ failures_file }}"
+        fi
+    done < "{{ endpoints_file }}"
+    [[ ! -s "{{ failures_file }}" ]]
+
+# Push the collected failures to the emergency ntfy.sh topic. Uses the
+# public ntfy.sh instance on purpose: the self-hosted ntfy runs on the
+# same cluster being monitored and would be down in exactly the cases
+# this alert exists for.
+alert:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    curl -sS -f \
+        -H "Title: uptime check failed" \
+        -H "Priority: high" \
+        -H "Tags: rotating_light" \
+        --data-binary @"{{ failures_file }}" \
+        "https://ntfy.sh/${NTFY_EMERGENCY_TOPIC:?set NTFY_EMERGENCY_TOPIC}"
