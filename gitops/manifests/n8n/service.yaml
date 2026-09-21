@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n
+  namespace: n8n
+spec:
+  # NodePort instead of an ingress: n8n stays off the public internet and
+  # is reached over the tailnet or LAN (same pattern as the earlier spike
+  # in ai-immo-search): http://100.65.75.90:30678 / http://192.168.1.21:30678
+  type: NodePort
+  selector:
+    app: n8n
+  ports:
+    - port: 5678
+      targetPort: 5678
+      nodePort: 30678

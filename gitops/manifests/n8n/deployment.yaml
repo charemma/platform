@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n
+  namespace: n8n
+spec:
+  replicas: 1
+  strategy:
+    # RWO PVC on local-path: a rolling update would deadlock on the volume.
+    type: Recreate
+  selector:
+    matchLabels:
+      app: n8n
+  template:
+    metadata:
+      labels:
+        app: n8n
+    spec:
+      # Pinned to aiagent: keeps the workload off the small VPS and gives
+      # workflows the residential IP if they ever need it.
+      nodeSelector:
+        home-network: "true"
+      tolerations:
+        - key: dedicated
+          operator: Equal
+          value: home
+          effect: NoSchedule
+      # The n8n image runs as uid 1000; local-path creates the volume
+      # root as root, so without fsGroup the pod cannot write its config.
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: n8n
+          image: docker.n8n.io/n8nio/n8n:2.39.9
+          env:
+            # Kubernetes injects N8N_PORT=tcp://<clusterIP>:5678 for the
+            # Service named "n8n" in this namespace, which collides with
+            # n8n's own N8N_PORT setting. Setting it explicitly wins.
+            - name: N8N_PORT
+              value: "5678"
+            # Reached over plain http (NodePort, no TLS), so the
+            # secure-cookie default would lock the UI out.
+            - name: N8N_SECURE_COOKIE
+              value: "false"
+            - name: GENERIC_TIMEZONE
+              value: "Europe/Athens"
+            - name: N8N_DIAGNOSTICS_ENABLED
+              value: "false"
+          ports:
+            - containerPort: 5678
+          volumeMounts:
+            - name: data
+              mountPath: /home/node/.n8n
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: n8n-data
