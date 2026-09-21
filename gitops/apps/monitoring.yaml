@@ -39,7 +39,7 @@ spec:
             limits:
               memory: 128Mi
           # Grafana is an admin UI and must not be publicly reachable
-          # (see platform#27: tailnet-only admin UIs). Until the tailscale
+          # (see platform#28: tailnet-only admin UIs). Until the tailscale
           # operator lands, access it via:
           #   kubectl port-forward svc/monitoring-grafana -n monitoring 3000:80
           ingress:
