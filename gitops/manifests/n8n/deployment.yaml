@@ -56,6 +56,12 @@ spec:
               value: "Europe/Athens"
             - name: N8N_DIAGNOSTICS_ENABLED
               value: "false"
+            # Disable the AI assistant (build-time copilot). It would need a
+            # model API key plus a code-execution sandbox (privileged DinD
+            # self-hosted, or Daytona cloud) -- not worth it for now. Runtime
+            # AI nodes (AI Agent, LLM chains, ...) are independent of this.
+            - name: N8N_DISABLED_MODULES
+              value: "instance-ai"
           ports:
             - containerPort: 5678
           volumeMounts:
