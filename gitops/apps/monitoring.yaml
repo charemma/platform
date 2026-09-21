@@ -12,6 +12,12 @@ spec:
     helm:
       values: |
         grafana:
+          # One-time Replace: the live Deployment still has the July emptyDir
+          # storage volume; server-side apply cannot morph it into the PVC
+          # volume ("may not specify more than 1 volume type"). Remove this
+          # annotation after the first successful sync (platform#29).
+          annotations:
+            argocd.argoproj.io/sync-options: Replace=true,Force=true
           admin:
             existingSecret: grafana-admin
             userKey: username
