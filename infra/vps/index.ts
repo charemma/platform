@@ -29,31 +29,10 @@ const argoCD = new k8s.helm.v3.Release("argocd", {
   },
 }, { dependsOn: argoCDNs });
 
-new k8s.networking.v1.Ingress("argocd", {
-  metadata: {
-    name: "argocd",
-    namespace: argoCDNs.metadata.name,
-    annotations: {
-      "traefik.ingress.kubernetes.io/router.entrypoints": "websecure",
-      "traefik.ingress.kubernetes.io/router.tls.certresolver": "letsencrypt",
-    },
-  },
-  spec: {
-    rules: [{
-      host: "argocd.charemma.de",
-      http: {
-        paths: [{
-          path: "/",
-          pathType: "Prefix",
-          backend: {
-            service: { name: "argocd-server", port: { number: 80 } },
-          },
-        }],
-      },
-    }],
-    tls: [{ hosts: ["argocd.charemma.de"] }],
-  },
-}, { dependsOn: argoCD });
+// ArgoCD is an admin UI and is deliberately NOT exposed publicly
+// (platform#28: tailnet-only admin UIs). Until the tailscale operator
+// provides a tailnet hostname, access it via:
+//   kubectl port-forward svc/argocd-server -n argocd 8080:80
 
 // ── bootstrap secrets ──────────────────────────────────────────────────────
 // Chicken-and-egg secrets that must exist before ArgoCD can pull anything
