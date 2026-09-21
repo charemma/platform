@@ -4,8 +4,16 @@ metadata:
   name: n8n
   namespace: n8n
 spec:
+  # NodePort instead of an ingress: n8n is an admin UI and must not be
+  # publicly reachable. externalTrafficPolicy Local means only nodes
+  # running the pod answer -- the pod is pinned to aiagent, which has no
+  # public IP, so the editor is reachable ONLY via tailnet or LAN:
+  #   http://100.65.75.90:30678 / http://192.168.1.21:30678
+  type: NodePort
+  externalTrafficPolicy: Local
   selector:
     app: n8n
   ports:
     - port: 5678
       targetPort: 5678
+      nodePort: 30678

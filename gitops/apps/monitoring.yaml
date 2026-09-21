@@ -38,16 +38,12 @@ spec:
               memory: 64Mi
             limits:
               memory: 128Mi
+          # Grafana is an admin UI and must not be publicly reachable
+          # (see platform#27: tailnet-only admin UIs). Until the tailscale
+          # operator lands, access it via:
+          #   kubectl port-forward svc/monitoring-grafana -n monitoring 3000:80
           ingress:
-            enabled: true
-            annotations:
-              traefik.ingress.kubernetes.io/router.entrypoints: websecure
-              traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
-            hosts:
-              - monitoring.charemma.de
-            tls:
-              - hosts:
-                  - monitoring.charemma.de
+            enabled: false
           # ntfy publish credentials for grafana webhook contact point.
           # See gitops/manifests/observability/SETUP.md for one-time setup:
           # 1) ntfy user add + ntfy access grants

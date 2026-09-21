@@ -38,20 +38,10 @@ spec:
             # n8n's own N8N_PORT setting. Setting it explicitly wins.
             - name: N8N_PORT
               value: "5678"
-            # Served via the Traefik ingress with TLS, so the secure-cookie
-            # default stays on. Editor and webhook URLs must advertise the
-            # public host, not the in-cluster one.
-            - name: N8N_HOST
-              value: "n8n.charemma.de"
-            - name: N8N_PROTOCOL
-              value: "https"
-            - name: N8N_EDITOR_BASE_URL
-              value: "https://n8n.charemma.de"
-            - name: WEBHOOK_URL
-              value: "https://n8n.charemma.de/"
-            # One reverse proxy (Traefik) in front; trust its X-Forwarded-For.
-            - name: N8N_PROXY_HOPS
-              value: "1"
+            # Reached over plain http (NodePort, tailnet/LAN only, no TLS),
+            # so the secure-cookie default would lock the UI out.
+            - name: N8N_SECURE_COOKIE
+              value: "false"
             - name: GENERIC_TIMEZONE
               value: "Europe/Athens"
             - name: N8N_DIAGNOSTICS_ENABLED
