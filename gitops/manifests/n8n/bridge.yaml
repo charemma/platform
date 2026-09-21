@@ -1,0 +1,87 @@
+# Proton Mail Bridge: decrypts/encrypts locally and exposes plain IMAP/SMTP
+# for n8n (Proton has no public API). Strictly cluster-internal -- the
+# bridge speaks plain auth with a locally generated password and must
+# never be reachable from outside.
+#
+# One-time login (stores the session in the bridge-data PVC):
+#   kubectl scale deploy/protonmail-bridge -n n8n --replicas=0
+#   kubectl run -it --rm bridge-init -n n8n \
+#     --image=shenxn/protonmail-bridge:3.19.0-build --restart=Never \
+#     --overrides='{"spec":{"nodeSelector":{"home-network":"true"},"tolerations":[{"key":"dedicated","operator":"Equal","value":"home","effect":"NoSchedule"}],"containers":[{"name":"bridge-init","image":"shenxn/protonmail-bridge:3.19.0-build","args":["init"],"stdin":true,"tty":true,"volumeMounts":[{"name":"data","mountPath":"/root"}]}],"volumes":[{"name":"data","persistentVolumeClaim":{"claimName":"protonmail-bridge-data"}}]}}'
+#   (in the bridge CLI: `login`, then `info` to see the generated password, `exit`)
+#   kubectl scale deploy/protonmail-bridge -n n8n --replicas=1
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: protonmail-bridge-data
+  namespace: n8n
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: protonmail-bridge
+  namespace: n8n
+spec:
+  selector:
+    app: protonmail-bridge
+  ports:
+    - name: smtp
+      port: 1025
+      targetPort: 25
+    - name: imap
+      port: 1143
+      targetPort: 143
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: protonmail-bridge
+  namespace: n8n
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: protonmail-bridge
+  template:
+    metadata:
+      labels:
+        app: protonmail-bridge
+    spec:
+      # Same node as n8n: keeps mail traffic on aiagent and the RWO
+      # local-path PVC needs a fixed node anyway.
+      nodeSelector:
+        home-network: "true"
+      tolerations:
+        - key: dedicated
+          operator: Equal
+          value: home
+          effect: NoSchedule
+      containers:
+        - name: bridge
+          # The release tags (-1) are amd64-only; the -build tags are
+          # built from source and include arm64 for the RPi.
+          image: shenxn/protonmail-bridge:3.19.0-build
+          ports:
+            - containerPort: 25
+            - containerPort: 143
+          volumeMounts:
+            - name: data
+              mountPath: /root
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: protonmail-bridge-data

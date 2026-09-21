@@ -67,6 +67,12 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /home/node/.n8n
+            # Deliberately a single dedicated subfolder of ~/Sync on aiagent,
+            # not the whole Sync tree: workflows drop invoice PDFs here and
+            # syncthing distributes them. A compromised n8n can touch only
+            # this folder.
+            - name: rechnungen
+              mountPath: /data/rechnungen
           resources:
             requests:
               cpu: 100m
@@ -77,3 +83,7 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: n8n-data
+        - name: rechnungen
+          hostPath:
+            path: /home/charemma/Sync/Rechnungen-Eingang
+            type: Directory
