@@ -73,13 +73,18 @@ spec:
                         basicAuthPassword: $__file{/etc/secrets/ntfy/password}
                         # Custom title/message templates so ntfy shows something readable
                         # instead of grafana's default JSON blob.
-                        title: '{{ .CommonAnnotations.summary }}'
+                        # Grafana notification templates, NOT helm templates.
+                        # The grafana chart runs alerting values through helm's
+                        # tpl, so every {{ }} must be escaped or helm template
+                        # fails with a nil pointer (broke every sync since July,
+                        # see platform#29).
+                        title: '{{ "{{" }} .CommonAnnotations.summary {{ "}}" }}'
                         message: |
-                          Status: {{ .Status }}
-                          {{ range .Alerts }}
-                          {{ .Annotations.description }}
-                          Since: {{ .StartsAt.Format "2006-01-02 15:04" }}
-                          {{ end }}
+                          Status: {{ "{{" }} .Status {{ "}}" }}
+                          {{ "{{" }} range .Alerts {{ "}}" }}
+                          {{ "{{" }} .Annotations.description {{ "}}" }}
+                          Since: {{ "{{" }} .StartsAt.Format "2006-01-02 15:04" {{ "}}" }}
+                          {{ "{{" }} end {{ "}}" }}
             policies.yaml:
               apiVersion: 1
               policies:
