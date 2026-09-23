@@ -1,31 +1,51 @@
 # nix-builder
 
-On-demand ARM (aarch64) Nix remote builders on Hetzner Cloud, managed with Pulumi (TypeScript).
+On-demand ARM (aarch64) Nix remote builders, managed with Pulumi (TypeScript).
 
-Spins up cheap Ampere ARM instances (CAX series) for cross-compiling NixOS images, e.g. for Raspberry Pi.
+Spins up cheap Ampere ARM instances for cross-compiling NixOS images, e.g. for
+Raspberry Pi. Two providers are supported, selected per Pulumi stack via the
+`provider` config:
+
+- **hcloud** (stack `dev`): Hetzner Cloud CAX series -- cheapest, EU only.
+- **aws** (stack `aws`): EC2 Graviton (c7g/t4g) -- use when Hetzner is out of
+  ARM capacity, which happens. Pay-per-hour, torn down after the build.
 
 ## Prerequisites
 
-- Hetzner Cloud account with an API token
 - SSH key pair at `~/.ssh/id_ed25519`
 - Nix with flakes enabled (provides pulumi, node, just via dev shell)
+- A Hetzner Cloud API token (for `dev`) or AWS credentials (for `aws`)
 
 ## Setup
 
 ```bash
-# from platform repo root -- enter dev shell
+# from platform repo root -- enter dev shell, install node deps
 direnv allow
-
-# install node dependencies
 just builder::init
-
-# initialize pulumi stack and set hetzner token (run inside infra/nix-builder/)
 cd infra/nix-builder
+```
+
+Hetzner (stack `dev`):
+
+```bash
 pulumi stack init dev
 pulumi config set hcloud:token --secret
 ```
 
-The token is stored encrypted in `Pulumi.dev.yaml` -- never in plain text.
+AWS (stack `aws`) -- non-secret config already lives in `Pulumi.aws.yaml`; add
+the credentials of a dedicated IAM user with EC2 permissions:
+
+```bash
+pulumi stack init aws
+pulumi config set aws:accessKey --secret
+pulumi config set aws:secretKey --secret
+# region defaults to eu-central-1 in Pulumi.aws.yaml; override with:
+# pulumi config set aws:region <region>
+```
+
+Secrets are stored encrypted in the per-stack `Pulumi.<stack>.yaml` -- never in
+plain text. Select the provider with `pulumi stack select dev|aws` before the
+`just builder::*` commands.
 
 ## Usage
 

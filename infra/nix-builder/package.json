@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "@pulumi/pulumi": "^3",
-    "@pulumi/hcloud": "^1"
+    "@pulumi/hcloud": "^1",
+    "@pulumi/aws": "^6"
   }
 }
