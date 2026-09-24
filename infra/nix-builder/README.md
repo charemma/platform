@@ -53,14 +53,24 @@ All commands from the platform repo root, namespaced by `builder::`:
 
 ```bash
 just builder::up        # spin up builders
-just builder::down      # tear down builders
+just builder::down      # tear down builders (disks and nix store are gone)
+just builder::stop      # aws only: stop instances, keep disks and nix store
+just builder::start     # aws only: start again, refresh state, print new IPs
 just builder::status    # show running builders as JSON
 just builder::preview   # preview changes
 ```
 
+`stop`/`start` exist because a full image build leaves ~25 GB of useful store on
+the builder. A stopped instance only bills the EBS volume (about 10 EUR/month
+for 120 GB gp3), and starting it again takes a minute. Public IPs change on
+start, `start` runs `pulumi refresh` so `status` shows the current ones.
+
 Wire builders into nixos-config: take the JSON output from `just builder::status`
 and feed it into nixos-config (a thin `add-builder` recipe there is on the TODO
 list -- for now, parse manually with `jq` and update `/etc/nix/machines`).
+On the client side always pass `--max-jobs 0` (nothing builds locally) and
+`--builders-use-substitutes` (the builder fetches inputs from cache.nixos.org
+instead of receiving them over SSH). Tracked in nixos-config issue #34.
 
 ## Configuration
 

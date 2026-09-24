@@ -4,7 +4,7 @@ set fallback := true
 up:
     pulumi up --yes
 
-# Tear down all builders
+# Tear down all builders (deletes the disks and the nix store on them)
 down:
     pulumi destroy --yes
 
@@ -16,7 +16,46 @@ preview:
 status:
     @pulumi stack output output 2>/dev/null | jq . || echo "[]"
 
+# Stop builders but keep their disks, so the nix store survives (aws only)
+stop:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    eval "$(just _aws-env)"
+    ids=$(just _aws-instance-ids)
+    aws ec2 stop-instances --instance-ids $ids --output text --query 'StoppingInstances[].[InstanceId,CurrentState.Name]'
+    aws ec2 wait instance-stopped --instance-ids $ids
+    echo "stopped: $ids (disk and nix store kept, compute billing paused)"
+
+# Start stopped builders and refresh the stack so status shows the new IPs (aws only)
+start:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    eval "$(just _aws-env)"
+    ids=$(just _aws-instance-ids)
+    aws ec2 start-instances --instance-ids $ids --output text --query 'StartingInstances[].[InstanceId,CurrentState.Name]'
+    aws ec2 wait instance-running --instance-ids $ids
+    # refresh picks up the new public IPs; stack outputs are only recomputed
+    # on `up`, so read the addresses from the refreshed state directly
+    pulumi refresh --yes >/dev/null
+    pulumi stack export | jq -r '.deployment.resources[] | select(.type=="aws:ec2/instance:Instance") | "\(.id) \(.outputs.publicIp)"'
+
 # Install deps and init stack
 init:
     npm install
     @echo "Run: pulumi stack init dev && pulumi config set hcloud:token --secret"
+
+# internal: export AWS credentials and region from the selected stack's config
+_aws-env:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ "$(pulumi config get nix-builder:provider 2>/dev/null)" != "aws" ]; then
+        echo "echo 'selected stack is not an aws stack (pulumi stack select aws)'; exit 1"
+        exit 0
+    fi
+    echo "export AWS_ACCESS_KEY_ID='$(pulumi config get aws:accessKey)'"
+    echo "export AWS_SECRET_ACCESS_KEY='$(pulumi config get aws:secretKey)'"
+    echo "export AWS_DEFAULT_REGION='$(pulumi config get aws:region)'"
+
+# internal: EC2 instance ids of all builders in the selected stack
+_aws-instance-ids:
+    @pulumi stack export | jq -r '.deployment.resources[] | select(.type=="aws:ec2/instance:Instance") | .id'

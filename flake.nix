@@ -17,6 +17,7 @@
             pulumiPackages.pulumi-nodejs
             nodejs
             jq
+            awscli2
             just
             kubectl
             argocd
