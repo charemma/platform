@@ -45,12 +45,15 @@ const NIXOS_CACHE_KEY =
 
 // The hook runs as root inside the daemon with a minimal environment, hence
 // the absolute nix path. Credentials come from the instance role (aws only).
+// --no-recursive: OUT_PATHS are exactly what this builder produced; their
+// dependencies are either on cache.nixos.org or were built (and uploaded by
+// their own hook run) earlier, so there is no point copying whole closures.
 const uploadHook = cacheBucket
   ? `#!/bin/sh
 set -eu
 set -f
 export IFS=' '
-exec /nix/var/nix/profiles/default/bin/nix copy --to 's3://${cacheBucket}?region=${awsRegion}' $OUT_PATHS
+exec /nix/var/nix/profiles/default/bin/nix copy --no-recursive --to 's3://${cacheBucket}?region=${awsRegion}' $OUT_PATHS
 `
   : undefined;
 
