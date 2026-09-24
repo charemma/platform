@@ -19,7 +19,13 @@ interface BuilderConfig {
   arch: string;
   cores: number;
   count: number;
+  // aws only: root volume in GB. Image builds (SD cards) need ~25 GB of
+  // scratch on top of the store, so keep this well above the 40 GB that
+  // is enough for plain package builds. hcloud disks come with the type.
+  diskGb?: number;
 }
+
+const DEFAULT_DISK_GB = 100;
 
 const builders: Record<string, BuilderConfig> = config.requireObject("builders");
 
@@ -104,7 +110,10 @@ if (provider === "aws") {
         // throwaway, so a changed cloud-config must recreate the instance
         // instead of stop/starting it with stale state.
         userDataReplaceOnChange: true,
-        rootBlockDevice: { volumeSize: 40, volumeType: "gp3" },
+        rootBlockDevice: {
+          volumeSize: cfg.diskGb ?? DEFAULT_DISK_GB,
+          volumeType: "gp3",
+        },
         tags: { Name: `builder-${name}-${i}` },
       });
 

@@ -7,6 +7,7 @@ config:
       serverType: c7g.2xlarge
       arch: aarch64-linux
       cores: 8
+      diskGb: 120
       count: 1
   # AWS credentials are NOT stored here. Set them encrypted with:
   #   pulumi config set aws:accessKey --secret
