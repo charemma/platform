@@ -50,6 +50,8 @@ runcmd:
     cat > /etc/nix/nix.conf <<EOF
     experimental-features = nix-command flakes
     trusted-users = root nix
+    substituters = https://cache.nixos.org https://nix.charemma.de/main
+    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= main:IRUYNlrph4qBjaoO79uXivgGPZVsemrRQaWph965JqY=
     EOF
   - systemctl restart nix-daemon
 `;
