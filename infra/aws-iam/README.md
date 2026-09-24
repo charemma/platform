@@ -14,7 +14,7 @@ create an access key for the user (use case: CLI).
 ```bash
 just iam::init
 cd infra/aws-iam
-pulumi stack init prod
+pulumi stack init aws
 pulumi config set aws:region eu-central-1
 pulumi config set --secret aws:accessKey      # the admin key
 pulumi config set --secret aws:secretKey

@@ -118,7 +118,8 @@ const nixCachePolicy = new aws.iam.Policy("iac-nix-cache", {
 
 const user = new aws.iam.User(userName, {
   name: userName,
-  tags: { purpose: "infrastructure as code (pulumi)" },
+  // IAM tag values allow no parentheses
+  tags: { purpose: "infrastructure as code via pulumi" },
 });
 
 for (const [name, policy] of Object.entries({

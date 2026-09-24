@@ -26,5 +26,5 @@ grant dir stack:
 # Install deps and init stack
 init:
     npm install
-    @echo "Run: pulumi stack init prod && pulumi config set aws:region eu-central-1"
+    @echo "Run: pulumi stack init aws && pulumi config set aws:region eu-central-1"
     @echo "Then set your admin credentials: pulumi config set --secret aws:accessKey && pulumi config set --secret aws:secretKey"
