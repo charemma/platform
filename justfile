@@ -1,3 +1,4 @@
+mod iam 'infra/aws-iam/justfile'
 mod builder 'infra/nix-builder/justfile'
 mod cache 'infra/nix-cache/justfile'
 mod vps 'infra/vps/justfile'

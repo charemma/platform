@@ -1,0 +1,11 @@
+{
+  "name": "aws-iam",
+  "main": "index.ts",
+  "devDependencies": {
+    "@types/node": "^22"
+  },
+  "dependencies": {
+    "@pulumi/pulumi": "^3",
+    "@pulumi/aws": "^6"
+  }
+}

@@ -14,6 +14,8 @@ the cache is what survives them.
   the `nix-builder` stack config and on the pushing hosts.
 - The bucket is `protect: true`, `pulumi destroy` refuses to delete it.
 
+Permissions for the Pulumi user come from `infra/aws-iam` (policy `iac-nix-cache`).
+
 Cost: S3 Standard in eu-central-1 is about 0.025 USD per GB and month. A host
 closure minus what cache.nixos.org already has is well under 1 GB.
 

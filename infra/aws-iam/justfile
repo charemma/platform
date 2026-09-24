@@ -1,0 +1,30 @@
+set fallback := true
+
+# Apply the IAM user and policies (runs with admin credentials)
+up:
+    pulumi up --yes
+
+# Preview changes without applying
+preview:
+    pulumi preview
+
+# Show the automation user and its access key id
+status:
+    @pulumi stack output --json 2>/dev/null | jq 'del(.secretAccessKey)' || echo "{}"
+
+# Store the iac credentials as encrypted config in another stack
+# (usage: just iam::grant ../nix-builder aws)
+grant dir stack:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    key_id=$(pulumi stack output accessKeyId)
+    secret=$(pulumi stack output --show-secrets secretAccessKey)
+    pulumi -C "{{ dir }}" -s "{{ stack }}" config set --secret aws:accessKey -- "$key_id"
+    pulumi -C "{{ dir }}" -s "{{ stack }}" config set --secret aws:secretKey -- "$secret"
+    echo "{{ dir }} ({{ stack }}) now runs as $(pulumi stack output iacUser)"
+
+# Install deps and init stack
+init:
+    npm install
+    @echo "Run: pulumi stack init prod && pulumi config set aws:region eu-central-1"
+    @echo "Then set your admin credentials: pulumi config set --secret aws:accessKey && pulumi config set --secret aws:secretKey"
