@@ -29,20 +29,76 @@ const DEFAULT_DISK_GB = 100;
 
 const builders: Record<string, BuilderConfig> = config.requireObject("builders");
 
+// Binary cache (infra/nix-cache). Builders substitute from it and, on aws,
+// push every path they build back into it via a post-build hook, signed with
+// the cache key. Optional so the hcloud stack keeps working without it.
+const cacheBucket = config.get("cacheBucket");
+const cachePublicKey = config.get("cachePublicKey");
+const cacheSigningKey = config.getSecret("cacheSigningKey");
+const awsRegion = new pulumi.Config("aws").get("region") ?? "eu-central-1";
+const cacheSubstituter = cacheBucket
+  ? `https://${cacheBucket}.s3.${awsRegion}.amazonaws.com`
+  : undefined;
+
+const NIXOS_CACHE_KEY =
+  "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=";
+
+// The hook runs as root inside the daemon with a minimal environment, hence
+// the absolute nix path. Credentials come from the instance role (aws only).
+const uploadHook = cacheBucket
+  ? `#!/bin/sh
+set -eu
+set -f
+export IFS=' '
+exec /nix/var/nix/profiles/default/bin/nix copy --to 's3://${cacheBucket}?region=${awsRegion}' $OUT_PATHS
+`
+  : undefined;
+
 // Identical bootstrap on every provider: create the `nix` build user, install
 // Nix, enable flakes, and trust the user so it can serve remote builds. The
 // installer is downloaded then run with sh (no process substitution -- Ubuntu's
 // /bin/sh is dash and would choke on it). cloud-init's runcmd has no $HOME set,
 // which makes the installer bail out, so it is passed explicitly. The nix user
 // gets passwordless sudo so a failed bootstrap can be inspected over SSH.
-const cloudConfig = `#cloud-config
+// Cache key and hook live in /etc/nix-cache because the installer refuses to
+// run when /etc/nix already exists.
+function renderCloudConfig(pushToCache: boolean): pulumi.Output<string> {
+  const substituters = ["https://cache.nixos.org", cacheSubstituter]
+    .filter(Boolean)
+    .join(" ");
+  const trustedKeys = [NIXOS_CACHE_KEY, cachePublicKey].filter(Boolean).join(" ");
+  const pushConfig =
+    pushToCache && uploadHook
+      ? `    secret-key-files = /etc/nix-cache/key.sec
+    post-build-hook = /etc/nix-cache/upload.sh
+`
+      : "";
+  const writeFiles =
+    pushToCache && uploadHook
+      ? pulumi.interpolate`
+write_files:
+  - path: /etc/nix-cache/key.sec
+    permissions: "0400"
+    content: |
+      ${cacheSigningKey}
+  - path: /etc/nix-cache/upload.sh
+    permissions: "0755"
+    content: |
+${uploadHook
+  .split("\n")
+  .map((l) => (l ? `      ${l}` : ""))
+  .join("\n")}
+`
+      : pulumi.output("");
+
+  return pulumi.interpolate`#cloud-config
 users:
   - name: nix
     shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
     ssh_authorized_keys:
       - ${sshPublicKey}
-
+${writeFiles}
 runcmd:
   - curl -L https://nixos.org/nix/install -o /tmp/nix-install.sh
   - HOME=/root sh /tmp/nix-install.sh --daemon --yes
@@ -50,11 +106,12 @@ runcmd:
     cat > /etc/nix/nix.conf <<EOF
     experimental-features = nix-command flakes
     trusted-users = root nix
-    substituters = https://cache.nixos.org https://nix.charemma.de/main
-    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= main:IRUYNlrph4qBjaoO79uXivgGPZVsemrRQaWph965JqY=
-    EOF
+    substituters = ${substituters}
+    trusted-public-keys = ${trustedKeys}
+${pushConfig}    EOF
   - systemctl restart nix-daemon
 `;
+}
 
 interface Builder {
   host: string;
@@ -100,6 +157,36 @@ if (provider === "aws") {
     ],
   });
 
+  // Builders push to the cache through an instance role instead of static
+  // keys; the write policy is owned by the nix-cache stack.
+  let instanceProfile: aws.iam.InstanceProfile | undefined;
+  if (cacheBucket) {
+    const cacheStack = new pulumi.StackReference(
+      config.get("cacheStack") ?? "charemma/nix-cache/prod",
+    );
+    const role = new aws.iam.Role("nix-builder", {
+      assumeRolePolicy: JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Effect: "Allow",
+            Principal: { Service: "ec2.amazonaws.com" },
+            Action: "sts:AssumeRole",
+          },
+        ],
+      }),
+    });
+    new aws.iam.RolePolicyAttachment("nix-builder-cache-push", {
+      role: role.name,
+      policyArn: cacheStack.requireOutput("pushPolicyArn").apply(String),
+    });
+    instanceProfile = new aws.iam.InstanceProfile("nix-builder", {
+      role: role.name,
+    });
+  }
+
+  const userData = renderCloudConfig(Boolean(cacheBucket));
+
   for (const [name, cfg] of Object.entries(builders)) {
     for (let i = 0; i < cfg.count; i++) {
       const instance = new aws.ec2.Instance(`builder-${name}-${i}`, {
@@ -107,7 +194,8 @@ if (provider === "aws") {
         ami: ami.id,
         keyName: keyPair.keyName,
         vpcSecurityGroupIds: [securityGroup.id],
-        userData: cloudConfig,
+        iamInstanceProfile: instanceProfile?.name,
+        userData,
         // cloud-init only runs the bootstrap on first boot. Builders are
         // throwaway, so a changed cloud-config must recreate the instance
         // instead of stop/starting it with stale state.
@@ -155,7 +243,8 @@ if (provider === "aws") {
         image: "ubuntu-24.04",
         location,
         sshKeys: [sshKey.id],
-        userData: cloudConfig,
+        // hcloud has no instance roles, so these builders only read the cache
+        userData: renderCloudConfig(false),
         firewallIds: [firewall.id.apply((id) => Number(id))],
       });
 

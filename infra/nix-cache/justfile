@@ -1,0 +1,24 @@
+set fallback := true
+
+# Create or update the cache bucket and push credentials
+up:
+    pulumi up --yes
+
+# Preview changes without applying
+preview:
+    pulumi preview
+
+# Show substituter URL, s3 URL and push access key id
+status:
+    @pulumi stack output --json 2>/dev/null | jq 'del(.pushSecretAccessKey)' || echo "{}"
+
+# Print the push credentials as shell exports (for `eval "$(just cache::env)"`)
+env:
+    @echo "export AWS_ACCESS_KEY_ID='$(pulumi stack output pushAccessKeyId)'"
+    @echo "export AWS_SECRET_ACCESS_KEY='$(pulumi stack output --show-secrets pushSecretAccessKey)'"
+    @echo "export AWS_DEFAULT_REGION='$(pulumi config get aws:region)'"
+
+# Install deps and init stack
+init:
+    npm install
+    @echo "Run: pulumi stack init prod && pulumi config set aws:region eu-central-1 && pulumi config set aws:accessKey --secret && pulumi config set aws:secretKey --secret"

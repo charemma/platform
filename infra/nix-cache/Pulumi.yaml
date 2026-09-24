@@ -1,0 +1,3 @@
+name: nix-cache
+runtime: nodejs
+description: S3 bucket used as a public-read Nix binary cache, plus push credentials

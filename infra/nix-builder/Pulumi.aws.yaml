@@ -18,3 +18,7 @@ config:
     secure: AAABACVtmtSrkraGsCk7ktlUSK6OcUQ+AI4/gseKEvDrVE6bOn9B/C+bTErGGetMaH8YZg==
   aws:secretKey:
     secure: AAABANdtldVOcMnAMQzBbIdLrbp+Ik2edBQkRhA4VsozwZb3yY2UC7BHpAL0KB31y2xs1WxyJQvCvhjEKNVdtGaDROgw3bt4
+  nix-builder:cacheSigningKey:
+    secure: AAABADP1d5JgZZjSoQSjQZBvzhZS+8ntJM6oRIYtLQ/16ComXlL8+VWa/qtFsn2hk+ozvFu9LIjVgLpElCvNgRjGQIxvCbmVaLLICrPQRowcKljJAQYIUDH/bP3fBo0vZGzx5en3zKWPCZ4iOgtzKN8wRWyPtmTs8ZW3YgfTzrSFI8WCQMPi2+hGZ+hH
+  nix-builder:cachePublicKey: charemma-nix-cache-1:R/svQq6DM5KAHVlkP1w7tXXcH3VhyV5iJFu+7OV/c6U=
+  nix-builder:cacheBucket: charemma-nix-cache
