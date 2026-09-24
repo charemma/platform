@@ -32,6 +32,13 @@ just iam::grant ../nix-cache prod
 The admin access key can be deactivated in the console afterwards. It is only
 needed again when this stack changes.
 
+## Cost alerts
+
+Three monthly budgets (`guardrail-account-total` 10 USD, `guardrail-ec2` 5 USD,
+`guardrail-s3` 5 USD) mail `alertEmail` at 80% actual spend and when the
+forecast crosses the limit. AWS cannot cap spending, this is the early warning
+for a forgotten builder or someone hammering the public cache bucket.
+
 ## Adding a permission
 
 When a stack fails with `AccessDenied`, add the action to that stack's policy in

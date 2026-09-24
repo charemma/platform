@@ -134,6 +134,54 @@ for (const [name, policy] of Object.entries({
 
 const accessKey = new aws.iam.AccessKey(userName, { user: user.name });
 
+// Cost guardrails. AWS has no hard spending cap, only alerts, so watch the
+// three things that can run away: the whole account, a builder someone forgot
+// to tear down (c7g.2xlarge is ~0.29 USD/h, 5 USD is about 17 hours), and
+// egress from the public-read cache bucket. Alerts fire at 80% actual spend
+// and when the month's forecast crosses the limit.
+const alertEmail = config.require("alertEmail");
+
+interface BudgetSpec {
+  name: string;
+  limitUsd: number;
+  service?: string;
+}
+
+const BUDGETS: BudgetSpec[] = [
+  { name: "account-total", limitUsd: 10 },
+  { name: "ec2", limitUsd: 5, service: "Amazon Elastic Compute Cloud - Compute" },
+  { name: "s3", limitUsd: 5, service: "Amazon Simple Storage Service" },
+];
+
+for (const spec of BUDGETS) {
+  new aws.budgets.Budget(spec.name, {
+    name: `guardrail-${spec.name}`,
+    budgetType: "COST",
+    timeUnit: "MONTHLY",
+    limitAmount: spec.limitUsd.toFixed(2),
+    limitUnit: "USD",
+    costFilters: spec.service
+      ? [{ name: "Service", values: [spec.service] }]
+      : undefined,
+    notifications: [
+      {
+        comparisonOperator: "GREATER_THAN",
+        threshold: 80,
+        thresholdType: "PERCENTAGE",
+        notificationType: "ACTUAL",
+        subscriberEmailAddresses: [alertEmail],
+      },
+      {
+        comparisonOperator: "GREATER_THAN",
+        threshold: 100,
+        thresholdType: "PERCENTAGE",
+        notificationType: "FORECASTED",
+        subscriberEmailAddresses: [alertEmail],
+      },
+    ],
+  });
+}
+
 export const iacUser = user.name;
 export const accessKeyId = accessKey.id;
 export const secretAccessKey = pulumi.secret(accessKey.secret);

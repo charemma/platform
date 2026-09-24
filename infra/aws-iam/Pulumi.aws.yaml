@@ -4,3 +4,4 @@ config:
   aws:secretKey:
     secure: AAABAIsHWGei1OpCph3EV4DmNwhc8zrPUfB1Kf7GG4YWoeXcLjQQxrYm6849a9gEAyLefj7HtNTmmKRJg11tSGpTGtIPCnTJ
   aws:region: eu-central-1
+  aws-iam:alertEmail: me@charemma.de
