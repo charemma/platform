@@ -48,13 +48,23 @@ const NIXOS_CACHE_KEY =
 // A binary cache must hold complete closures (nix copy refuses paths whose
 // references are missing there), so this copies the closure of each output.
 // After the first seed that is incremental: nix only uploads what the bucket
-// does not have yet.
+// does not have yet. Instance-metadata credential lookups occasionally time
+// out under load, so retry a few times and never fail the build over a cache
+// upload; a missed path just gets uploaded by the next build that needs it.
 const uploadHook = cacheBucket
   ? `#!/bin/sh
-set -eu
+set -u
 set -f
 export IFS=' '
-exec /nix/var/nix/profiles/default/bin/nix copy --to 's3://${cacheBucket}?region=${awsRegion}' $OUT_PATHS
+for attempt in 1 2 3; do
+  if /nix/var/nix/profiles/default/bin/nix copy --to 's3://${cacheBucket}?region=${awsRegion}' $OUT_PATHS; then
+    exit 0
+  fi
+  echo "cache upload attempt $attempt failed, retrying" >&2
+  sleep 5
+done
+echo "warning: cache upload failed for: $OUT_PATHS" >&2
+exit 0
 `
   : undefined;
 
