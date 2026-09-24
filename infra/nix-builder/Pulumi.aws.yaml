@@ -12,3 +12,8 @@ config:
   #   pulumi config set aws:accessKey --secret
   #   pulumi config set aws:secretKey --secret
   # or export AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY in the environment.
+
+  aws:accessKey:
+    secure: AAABACVtmtSrkraGsCk7ktlUSK6OcUQ+AI4/gseKEvDrVE6bOn9B/C+bTErGGetMaH8YZg==
+  aws:secretKey:
+    secure: AAABANdtldVOcMnAMQzBbIdLrbp+Ik2edBQkRhA4VsozwZb3yY2UC7BHpAL0KB31y2xs1WxyJQvCvhjEKNVdtGaDROgw3bt4

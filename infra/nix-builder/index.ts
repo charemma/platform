@@ -26,17 +26,20 @@ const builders: Record<string, BuilderConfig> = config.requireObject("builders")
 // Identical bootstrap on every provider: create the `nix` build user, install
 // Nix, enable flakes, and trust the user so it can serve remote builds. The
 // installer is downloaded then run with sh (no process substitution -- Ubuntu's
-// /bin/sh is dash and would choke on it).
+// /bin/sh is dash and would choke on it). cloud-init's runcmd has no $HOME set,
+// which makes the installer bail out, so it is passed explicitly. The nix user
+// gets passwordless sudo so a failed bootstrap can be inspected over SSH.
 const cloudConfig = `#cloud-config
 users:
   - name: nix
     shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
     ssh_authorized_keys:
       - ${sshPublicKey}
 
 runcmd:
   - curl -L https://nixos.org/nix/install -o /tmp/nix-install.sh
-  - sh /tmp/nix-install.sh --daemon --yes
+  - HOME=/root sh /tmp/nix-install.sh --daemon --yes
   - |
     cat > /etc/nix/nix.conf <<EOF
     experimental-features = nix-command flakes
@@ -97,6 +100,10 @@ if (provider === "aws") {
         keyName: keyPair.keyName,
         vpcSecurityGroupIds: [securityGroup.id],
         userData: cloudConfig,
+        // cloud-init only runs the bootstrap on first boot. Builders are
+        // throwaway, so a changed cloud-config must recreate the instance
+        // instead of stop/starting it with stale state.
+        userDataReplaceOnChange: true,
         rootBlockDevice: { volumeSize: 40, volumeType: "gp3" },
         tags: { Name: `builder-${name}-${i}` },
       });
