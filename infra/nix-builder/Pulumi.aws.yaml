@@ -15,9 +15,9 @@ config:
   # or export AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY in the environment.
 
   aws:accessKey:
-    secure: AAABACVtmtSrkraGsCk7ktlUSK6OcUQ+AI4/gseKEvDrVE6bOn9B/C+bTErGGetMaH8YZg==
+    secure: AAABANrkwTb+qWfR//WafP2MVMTkMgH5fVCzUcrAV7O1tbp5pt4ePsItwUSd9Dd73t8SXw==
   aws:secretKey:
-    secure: AAABANdtldVOcMnAMQzBbIdLrbp+Ik2edBQkRhA4VsozwZb3yY2UC7BHpAL0KB31y2xs1WxyJQvCvhjEKNVdtGaDROgw3bt4
+    secure: AAABAOPlbxqvQL4Tofkfsc1kDqe1WqIuV/qsDFd+M5J4qOAxN71GVC78iUqnJN3zs3U2bUtYORpJJXDUuLIWxeeckygBO+NB
   nix-builder:cacheSigningKey:
     secure: AAABADP1d5JgZZjSoQSjQZBvzhZS+8ntJM6oRIYtLQ/16ComXlL8+VWa/qtFsn2hk+ozvFu9LIjVgLpElCvNgRjGQIxvCbmVaLLICrPQRowcKljJAQYIUDH/bP3fBo0vZGzx5en3zKWPCZ4iOgtzKN8wRWyPtmTs8ZW3YgfTzrSFI8WCQMPi2+hGZ+hH
   nix-builder:cachePublicKey: charemma-nix-cache-1:R/svQq6DM5KAHVlkP1w7tXXcH3VhyV5iJFu+7OV/c6U=
