@@ -1,17 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ai-invest-research
+  name: ai-trading-lab
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: https://github.com/charemma/ai-invest-research
+    repoURL: https://github.com/charemma/ai-trading-lab
     targetRevision: HEAD
     path: k8s
   destination:
     server: https://kubernetes.default.svc
-    namespace: ai-invest-research
+    namespace: ai-trading-lab
   syncPolicy:
     automated:
       prune: true
