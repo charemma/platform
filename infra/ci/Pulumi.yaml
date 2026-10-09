@@ -1,3 +1,6 @@
 name: ci
-runtime: go
-description: GitLab and CI plumbing (runner registration, runner secrets on k3s)
+runtime:
+  name: python
+  options:
+    toolchain: uv
+description: GitLab org structure and CI plumbing (groups, runner, runner secret on k3s)

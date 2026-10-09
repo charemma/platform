@@ -24,7 +24,7 @@ just builder::status    # JSON output for piping into nixos-config
 just builder::down
 just builder::preview
 
-just ci::preview        # infra/ci: GitLab runner registration (Go, stack: prod)
+just ci::preview        # infra/ci: GitLab groups + runner (Python/uv, stack: prod)
 just ci::deploy
 
 just vps::bootstrap     # npm ci
@@ -54,10 +54,11 @@ via GitOps because of chicken-and-egg ordering:
    - `attic/attic-credentials` -- HS256 JWT signer secret for the attic cache
 3. Creates one ArgoCD root `Application` pointing at `gitops/apps/` in this repo.
 
-**`infra/ci/`** (stack: `prod`, Go). GitLab/CI plumbing: registers the k3s
-GitLab group runner (group path from `ci:group`) and writes its token into the
-`gitlab-runner/gitlab-runner-k3s` Secret consumed by the gitlab-runner
-Application in `gitops/apps/`. No CI yet, run from a workstation.
+**`infra/ci/`** (stack: `prod`, Python/uv). GitLab org structure and CI
+plumbing: manages the `charemma-org` top-level group (UI-created, imported,
+protected) and customer subgroups, registers the k3s group runner on it and
+writes its token into the `gitlab-runner/gitlab-runner-k3s` Secret consumed by
+the gitlab-runner Application in `gitops/apps/`. No CI yet, run from a workstation.
 
 Everything else (attic deployment, app pointers, future workloads)
 lives in `gitops/` and is reconciled by ArgoCD.

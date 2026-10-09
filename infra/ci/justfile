@@ -3,19 +3,24 @@ set fallback := true
 _default:
     @just --list
 
-# download Go module dependencies
+# install Python dependencies into .venv
 bootstrap:
-    go mod download
+    uv sync
 
-# vet and build the Pulumi program
+# lint and check formatting
 lint:
-    go vet ./...
+    uv run ruff check .
+    uv run ruff format --check .
+
+# format code
+fmt:
+    uv run ruff format .
 
 # preview Pulumi changes (dry-run)
 preview:
     pulumi preview --stack prod
 
-# deploy runner registrations and secrets
+# deploy groups, runner registration and runner secret
 deploy:
     pulumi up --yes --stack prod
 
@@ -23,6 +28,6 @@ deploy:
 up:
     pulumi up --stack prod
 
-# show registered runners and their secret names
-status:
-    @pulumi stack output --stack prod --json
+# one-time: adopt the UI-created top-level group into the stack
+import-org:
+    pulumi import --stack prod --protect --yes gitlab:index/group:Group charemma-org "$(pulumi config get orgGroupId --stack prod)"

@@ -15,8 +15,9 @@
           packages = with pkgs; [
             pulumi
             pulumiPackages.pulumi-nodejs
-            pulumiPackages.pulumi-go
-            go
+            pulumiPackages.pulumi-python
+            python3
+            uv
             nodejs
             jq
             awscli2
