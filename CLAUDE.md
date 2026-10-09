@@ -11,7 +11,7 @@ Personal platform monorepo. Two top-level concerns:
 
 The OS layer (NixOS, k3s, Traefik, Let's Encrypt) lives in a *separate* repo:
 [charemma/nixos-config](https://github.com/charemma/nixos-config). Hand-off:
-NixOS installs k3s and configures Traefik for ACME. Pulumi (`infra/vps/`)
+NixOS installs k3s and configures Traefik for ACME. Pulumi (`infra/k8s-init/`)
 installs ArgoCD and seeds bootstrap secrets. ArgoCD takes everything from there.
 
 ## Common commands
@@ -27,10 +27,10 @@ just builder::preview
 just ci::preview        # infra/ci: GitLab groups + runner (Python/uv, stack: prod)
 just ci::deploy
 
-just vps::bootstrap     # npm ci
-just vps::preview       # pulumi preview --stack prod
-just vps::deploy        # pulumi up --yes --stack prod
-just vps::up            # pulumi up --stack prod (interactive)
+just k8s-init::bootstrap  # npm ci
+just k8s-init::preview    # pulumi preview --stack prod
+just k8s-init::deploy     # pulumi up --yes --stack prod
+just k8s-init::up         # pulumi up --stack prod (interactive)
 ```
 
 ## Architecture: infra/
@@ -44,7 +44,7 @@ Stack output is a JSON array of `{host, arch, user, cores}` consumed by
 `nixos-config`'s `just add-builder` recipe (TODO -- that recipe doesn't exist
 yet in nixos-config; the README there references it but it was never written).
 
-**`infra/vps/`** (stack: `prod`). ~100 lines. Does *only* what cannot be done
+**`infra/k8s-init/`** (stack: `prod`). ~100 lines. Does *only* what cannot be done
 via GitOps because of chicken-and-egg ordering:
 
 1. Installs ArgoCD via Helm (`argo-cd` chart, pinned at 9.5.0) + creates the
@@ -94,10 +94,10 @@ Pulumi change unless a new bootstrap secret is needed.
 
 ## CI
 
-`.github/workflows/vps-deploy.yaml` -- triggers *only* on `infra/vps/**` changes:
+`.github/workflows/k8s-init-deploy.yaml` -- triggers *only* on `infra/k8s-init/**` changes:
 
-- PR -> `just vps::preview`
-- push to `main` -> `just vps::deploy`
+- PR -> `just k8s-init::preview`
+- push to `main` -> `just k8s-init::deploy`
 
 Runs inside `nix develop` so CI and local use the same toolchain. Required repo
 secrets: `PULUMI_ACCESS_TOKEN`, `KUBECONFIG`.
@@ -109,11 +109,11 @@ secrets: `PULUMI_ACCESS_TOKEN`, `KUBECONFIG`.
 ## Open / planned
 
 - **DNS**: today manual in Cloudflare. Planned via `external-dns` in `gitops/`
-  + a `cloudflare-token` bootstrap secret in `infra/vps/`. Pulumi-managed DNS
+  + a `cloudflare-token` bootstrap secret in `infra/k8s-init/`. Pulumi-managed DNS
   is *not* planned -- external-dns handles the long tail.
 - **sops** for both OS-side (`nixos-config`) and cluster-side (`gitops/`)
   secrets. Generic sops + age, no NixOS-specific binding.
-- **Go**: when `infra/vps/` shrinks further, may rewrite from TypeScript to Go.
+- **Go**: when `infra/k8s-init/` shrinks further, may rewrite from TypeScript to Go.
 - **attic auslagern**: move `gitops/manifests/attic/` to its own `charemma/attic-k8s`
   repo so platform/ only owns Application CRs. Also pin image (today `:latest`)
   and add resources requests/limits.

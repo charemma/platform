@@ -9,7 +9,7 @@ Pure GitOps directory -- no build step, no tests. All files are YAML reconciled 
 ## Layout
 
 ```
-apps/        ArgoCD Application CRs (root App in infra/vps reads this dir)
+apps/        ArgoCD Application CRs (root App in infra/k8s-init reads this dir)
 manifests/   Raw K8s YAML for workloads without an upstream Helm chart
   attic/     Nix binary cache (planned to move to its own repo)
   ntfy/      Push notification server
@@ -65,12 +65,12 @@ All Application CRs go in `namespace: argocd` and use `syncPolicy.automated` wit
 
 ## Bootstrap secrets (NOT in this directory)
 
-Secrets seeded by Pulumi (`infra/vps/`), not stored here:
+Secrets seeded by Pulumi (`infra/k8s-init/`), not stored here:
 - `argocd/charemma-github` -- PAT for ImageUpdater git write-back
 - `argocd/ghcr-image-updater` -- token for private GHCR pulls
 - `attic/attic-credentials` -- HS256 JWT signer for attic
 
-Until a secrets operator is installed, new app secrets must be created manually (`kubectl create secret`) or added to the Pulumi bootstrap in `infra/vps/`.
+Until a secrets operator is installed, new app secrets must be created manually (`kubectl create secret`) or added to the Pulumi bootstrap in `infra/k8s-init/`.
 
 ## Ingress convention
 

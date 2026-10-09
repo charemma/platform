@@ -18,7 +18,7 @@ handoff between the two repos is precise:
 nixos-config  ──▶  vps boots NixOS, k3s comes up, Traefik provisions certs
                                    │
                                    ▼
-platform/infra/vps  ──▶  Pulumi installs ArgoCD onto the running cluster
+platform/infra/k8s-init  ──▶  Pulumi installs ArgoCD onto the running cluster
                          and seeds bootstrap secrets
                                    │
                                    ▼
@@ -100,8 +100,8 @@ just builder::up        # spin up Hetzner Nix builders (stack: dev)
 just builder::status    # JSON output, pipe into nixos-config to register
 just builder::down
 
-just vps::preview       # dry-run ArgoCD bootstrap (stack: prod)
-just vps::deploy        # apply ArgoCD bootstrap
+just k8s-init::preview    # dry-run ArgoCD bootstrap (stack: prod)
+just k8s-init::deploy     # apply ArgoCD bootstrap
 ```
 
 Justfiles follow the module pattern: the top-level `justfile` only

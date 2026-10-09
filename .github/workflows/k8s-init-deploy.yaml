@@ -1,4 +1,4 @@
-# CI/CD for k8s workloads on the Hetzner VPS (k3s cluster).
+# CI/CD for the k8s-init bootstrap (ArgoCD + bootstrap secrets) on the k3s cluster.
 # Tooling (pulumi, node, just) comes from the repo's Nix flake devShell.
 #
 # Triggers:
@@ -9,19 +9,19 @@
 #   PULUMI_ACCESS_TOKEN  -- authenticates with Pulumi Cloud + decrypts stack secrets
 #   KUBECONFIG           -- k3s kubeconfig (server URL must point to the VPS, not 127.0.0.1)
 
-name: Deploy VPS workloads
+name: Deploy k8s-init
 
 on:
   push:
     branches: [main]
     paths:
-      - "infra/vps/**"
-      - ".github/workflows/vps-deploy.yaml"
+      - "infra/k8s-init/**"
+      - ".github/workflows/k8s-init-deploy.yaml"
   pull_request:
     branches: [main]
     paths:
-      - "infra/vps/**"
-      - ".github/workflows/vps-deploy.yaml"
+      - "infra/k8s-init/**"
+      - ".github/workflows/k8s-init-deploy.yaml"
 
 permissions:
   contents: read
@@ -56,14 +56,14 @@ jobs:
           chmod 600 ~/.kube/config
 
       - name: Install dependencies
-        run: just vps bootstrap
+        run: just k8s-init bootstrap
 
       # PR: preview only -- shows what would change without applying.
       - name: Pulumi preview
         if: github.event_name == 'pull_request'
-        run: just vps preview
+        run: just k8s-init preview
 
       # Push to main: apply changes to the cluster.
       - name: Pulumi up
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: just vps deploy
+        run: just k8s-init deploy
