@@ -2,8 +2,8 @@
 
 Pulumi project (Go) for GitLab and CI plumbing. Stack: `prod`.
 
-Owns only what GitOps can't do on its own: it registers the k3s runner on
-gitlab.com and writes its token into `gitlab-runner/gitlab-runner-k3s`, shaped
+Owns only what GitOps can't do on its own: it registers the k3s group runner
+on gitlab.com and writes its token into `gitlab-runner/gitlab-runner-k3s`, shaped
 for the gitlab-runner Helm chart (`runners.secret`).
 
 The runner workload itself is an ArgoCD Application in
@@ -14,7 +14,7 @@ The runner workload itself is an ArgoCD Application in
 ```yaml
 config:
   gitlab:token:     # PAT with create_runner scope (secret)
-  ci:projectId: 123 # GitLab project the runner is registered to
+  ci:group: my-group # group path; runner serves all its projects
 ```
 
 ## Usage

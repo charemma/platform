@@ -55,7 +55,7 @@ via GitOps because of chicken-and-egg ordering:
 3. Creates one ArgoCD root `Application` pointing at `gitops/apps/` in this repo.
 
 **`infra/ci/`** (stack: `prod`, Go). GitLab/CI plumbing: registers the k3s
-GitLab runner (project from `ci:projectId`) and writes its token into the
+GitLab group runner (group path from `ci:group`) and writes its token into the
 `gitlab-runner/gitlab-runner-k3s` Secret consumed by the gitlab-runner
 Application in `gitops/apps/`. No CI yet, run from a workstation.
 

@@ -1,5 +1,5 @@
-// Registers the k3s GitLab runner and stores its token in the cluster. The
-// runner itself is deployed by ArgoCD (gitops/apps/gitlab-k8s-runner.yaml).
+// Registers the k3s GitLab group runner and stores its token in the cluster.
+// The runner itself is deployed by ArgoCD (gitops/apps/gitlab-k8s-runner.yaml).
 package main
 
 import (
@@ -14,9 +14,18 @@ func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 		cfg := config.New(ctx, "")
 
+		// A group runner serves every project in the group and its subgroups,
+		// so new projects get CI without touching this stack.
+		group, err := gitlab.LookupGroup(ctx, &gitlab.LookupGroupArgs{
+			FullPath: pulumi.StringRef(cfg.Require("group")),
+		})
+		if err != nil {
+			return err
+		}
+
 		runner, err := gitlab.NewUserRunner(ctx, "k3s", &gitlab.UserRunnerArgs{
-			RunnerType:  pulumi.String("project_type"),
-			ProjectId:   pulumi.Int(cfg.RequireInt("projectId")),
+			RunnerType:  pulumi.String("group_type"),
+			GroupId:     pulumi.Int(group.GroupId),
 			Description: pulumi.String("k3s runner (managed by charemma/platform)"),
 			TagLists:    pulumi.ToStringArray([]string{"k3s"}),
 		})
