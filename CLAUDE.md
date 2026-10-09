@@ -54,9 +54,9 @@ via GitOps because of chicken-and-egg ordering:
    - `attic/attic-credentials` -- HS256 JWT signer secret for the attic cache
 3. Creates one ArgoCD root `Application` pointing at `gitops/apps/` in this repo.
 
-**`infra/ci/`** (stack: `prod`, Go). GitLab/CI plumbing: registers GitLab
-runners from the `ci:runners` config and writes each token into a
-`gitlab-runner/gitlab-runner-<name>` Secret consumed by the gitlab-runner
+**`infra/ci/`** (stack: `prod`, Go). GitLab/CI plumbing: registers the k3s
+GitLab runner (project from `ci:projectId`) and writes its token into the
+`gitlab-runner/gitlab-runner-k3s` Secret consumed by the gitlab-runner
 Application in `gitops/apps/`. No CI yet, run from a workstation.
 
 Everything else (attic deployment, app pointers, future workloads)

@@ -1,8 +1,3 @@
 config:
   gitlab:token:
     secure: AAABANPNZNHDxJim0x9j92uZjCwkp8qeIj3nNMU6uhNU52WKA+Zr4DRmHELQ1j2iZSfrqKfld8q2MBsTbtGBvE5o95BVk08RNVvEraUTiammuLjZwgIjf3sj9TW5dQ==
-  ci:namespace: gitlab-runner
-  ci:runners:
-    - name: k3s
-      tags:
-        - k3s
