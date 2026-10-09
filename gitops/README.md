@@ -6,7 +6,7 @@ ArgoCD-managed state for the k3s cluster on `charemma.de`. Lives inside the
 ## Layout
 
 ```
-apps/        ArgoCD Application CRs (synced by the root Application in infra/vps)
+apps/        ArgoCD Application CRs (synced by the root Application in infra/k8s-init)
 manifests/   Raw K8s YAML for workloads without an upstream Helm chart
   attic/     Nix binary cache
   ollama/    Local LLM serving on aiagent (toleration dedicated=home)
@@ -15,7 +15,7 @@ manifests/   Raw K8s YAML for workloads without an upstream Helm chart
 
 ## How it gets in
 
-The root `Application` is created by Pulumi in `../infra/vps/index.ts` and
+The root `Application` is created by Pulumi in `../infra/k8s-init/index.ts` and
 points at this directory's `apps/`. Pulumi installs ArgoCD itself and seeds
 the chicken-and-egg secrets; ArgoCD then reconciles everything under `apps/`.
 
