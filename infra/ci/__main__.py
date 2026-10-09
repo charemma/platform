@@ -13,7 +13,7 @@ org = gitlab.Group(
     name="charemma-org",
     path="charemma-org",
     visibility_level="private",
-    shared_runners_setting="disabled_and_unoverridable",  # everything runs on k3s
+    shared_runners_setting="enabled",
     opts=pulumi.ResourceOptions(protect=True),
 )
 

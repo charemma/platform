@@ -1,4 +1,4 @@
 config:
   gitlab:token:
-    secure: AAABANPNZNHDxJim0x9j92uZjCwkp8qeIj3nNMU6uhNU52WKA+Zr4DRmHELQ1j2iZSfrqKfld8q2MBsTbtGBvE5o95BVk08RNVvEraUTiammuLjZwgIjf3sj9TW5dQ==
+    secure: AAABAIzE3svOsNEq32ytEjyN/v8bUA1qxcglyQaIsPkd+cDbKgSAaN6zJV/tsx9EULJoQpZuU187oXlX6uUOzYbD8+kjvKe1t92ZHv9yw9T4C3r+UxxW6j/JMlCx2w==
   ci:orgGroupId: "144343320"
