@@ -1,0 +1,28 @@
+set fallback := true
+
+_default:
+    @just --list
+
+# download Go module dependencies
+bootstrap:
+    go mod download
+
+# vet and build the Pulumi program
+lint:
+    go vet ./...
+
+# preview Pulumi changes (dry-run)
+preview:
+    pulumi preview --stack prod
+
+# deploy runner registrations and secrets
+deploy:
+    pulumi up --yes --stack prod
+
+# deploy interactively (with confirmation prompt)
+up:
+    pulumi up --stack prod
+
+# show registered runners and their secret names
+status:
+    @pulumi stack output --stack prod --json

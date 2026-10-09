@@ -1,0 +1,3 @@
+name: ci
+runtime: go
+description: GitLab and CI plumbing (runner registration, runner secrets on k3s)

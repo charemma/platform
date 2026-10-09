@@ -24,6 +24,9 @@ just builder::status    # JSON output for piping into nixos-config
 just builder::down
 just builder::preview
 
+just ci::preview        # infra/ci: GitLab runner registration (Go, stack: prod)
+just ci::deploy
+
 just vps::bootstrap     # npm ci
 just vps::preview       # pulumi preview --stack prod
 just vps::deploy        # pulumi up --yes --stack prod
@@ -50,6 +53,11 @@ via GitOps because of chicken-and-egg ordering:
    - `argocd/charemma-github` -- PAT for argocd-image-updater write-back
    - `attic/attic-credentials` -- HS256 JWT signer secret for the attic cache
 3. Creates one ArgoCD root `Application` pointing at `gitops/apps/` in this repo.
+
+**`infra/ci/`** (stack: `prod`, Go). GitLab/CI plumbing: registers GitLab
+runners from the `ci:runners` config and writes each token into a
+`gitlab-runner/gitlab-runner-<name>` Secret consumed by the gitlab-runner
+Application in `gitops/apps/`. No CI yet, run from a workstation.
 
 Everything else (attic deployment, app pointers, future workloads)
 lives in `gitops/` and is reconciled by ArgoCD.
