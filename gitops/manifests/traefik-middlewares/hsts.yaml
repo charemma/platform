@@ -1,0 +1,12 @@
+# HSTS for public sites. Attach per route with the ingress annotation
+#   traefik.ingress.kubernetes.io/router.middlewares: kube-system-hsts@kubernetescrd
+# No includeSubDomains/preload: those are hard to roll back and would force
+# HTTPS on every current and future *.charemma.de host.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: hsts
+  namespace: kube-system
+spec:
+  headers:
+    stsSeconds: 31536000
