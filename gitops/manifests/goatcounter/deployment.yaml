@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goatcounter
+  namespace: goatcounter
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: goatcounter
+  template:
+    metadata:
+      labels:
+        app: goatcounter
+    spec:
+      # Pinned to vps: it serves the public /count endpoint next to Traefik,
+      # and local-path binds the SQLite volume to whichever node runs first.
+      nodeSelector:
+        kubernetes.io/hostname: vps
+      # The image runs as the goatcounter user (gid 1000); local-path creates
+      # the volume as root, so without fsGroup the SQLite file is not writable.
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: goatcounter
+          image: arp242/goatcounter:2.7.0
+          # Plain HTTP, TLS terminates at Traefik. The admin user and site are
+          # created once via `goatcounter db create site` (see README.md), so
+          # no secret lives in the repo or the cluster.
+          args:
+            - serve
+            - -automigrate
+            - -listen=:8080
+            - -tls=http
+            - -db=sqlite+/home/goatcounter/goatcounter-data/db.sqlite3
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: data
+              mountPath: /home/goatcounter/goatcounter-data
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 256Mi
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 30
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: goatcounter-data
