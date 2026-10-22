@@ -23,6 +23,9 @@ spec:
       # the volume as root, so without fsGroup the SQLite file is not writable.
       securityContext:
         fsGroup: 1000
+      # GoatCounter reads every GOATCOUNTER_* env var as a flag, and the
+      # service link GOATCOUNTER_PORT=tcp://... crashes it on startup.
+      enableServiceLinks: false
       containers:
         - name: goatcounter
           image: arp242/goatcounter:2.7.0
