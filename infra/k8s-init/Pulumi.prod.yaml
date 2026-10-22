@@ -5,3 +5,6 @@ config:
     secure: AAABACPz1hxKqG48fXfEh2Zb+LOFmgWh/8sXQDGtSQlcJ01DU8qhMawmnXi51XsGbR3XBO4nndSNYKl6Tead6x+Wqox6MKiLYyV2/zP/15Xruyf74BrZ/0zBQAjHmLz/++xs7OfK8rw1gl0iyEYBnUQ4se1OXizbWr1Ya0E=
   k8s-init:grafanaAdminPassword:
     secure: AAABAN5NUb8i1aFSK/zgUoebEDWzviQRyBQAtCKbHSL6wcRE+eovMgNvru3tUyfQbO6rnw==
+  k8s-init:maxmindAccountId: "1433599"
+  k8s-init:maxmindLicenseKey:
+    secure: AAABABHU6isRHVkJ73dtmk+Dta9UzwXPr1QwEoolZ/azfMAm0VREETHp4xh8T35fxVMXy8jfcBl9G2Q5lAgjpDXKBXAHTqd+
