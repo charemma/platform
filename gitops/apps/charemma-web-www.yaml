@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: charemma-web
+  name: charemma-web-www
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: https://github.com/charemma/charemma-web
+    repoURL: https://github.com/charemma/charemma-web-security
     targetRevision: HEAD
-    path: k8s
+    path: sites/www/k8s
   destination:
     server: https://kubernetes.default.svc
     namespace: default

@@ -53,7 +53,7 @@ source:
 
 Apps using ghcr.io private images get a paired `ImageUpdater` CR. The ImageUpdater polls for new builds and writes back to the app repo's `kustomization.yaml` via `git:secret:argocd/charemma-github`.
 
-See `apps/zeddl-image-updater.yaml` and `apps/charemma-web-image-updater.yaml` for the pattern. The `argocd-image-updater` application (`apps/argocd-image-updater.yaml`) must be installed first and configured with the GHCR credentials secret.
+See `apps/zeddl-image-updater.yaml` and `apps/charemma-web-www-image-updater.yaml` for the pattern. The `argocd-image-updater` application (`apps/argocd-image-updater.yaml`) must be installed first and configured with the GHCR credentials secret.
 
 ## Adding a new workload
 
