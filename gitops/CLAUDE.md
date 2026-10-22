@@ -69,6 +69,7 @@ Secrets seeded by Pulumi (`infra/k8s-init/`), not stored here:
 - `argocd/charemma-github` -- PAT for ImageUpdater git write-back
 - `argocd/ghcr-image-updater` -- token for private GHCR pulls
 - `attic/attic-credentials` -- HS256 JWT signer for attic
+- `goatcounter/maxmind` -- MaxMind GeoLite2 credentials for GoatCounter regions
 
 Until a secrets operator is installed, new app secrets must be created manually (`kubectl create secret`) or added to the Pulumi bootstrap in `infra/k8s-init/`.
 

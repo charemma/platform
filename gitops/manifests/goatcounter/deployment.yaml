@@ -38,6 +38,17 @@ spec:
             - -listen=:8080
             - -tls=http
             - -db=sqlite+/home/goatcounter/goatcounter-data/db.sqlite3
+          # MaxMind credentials as maxmind:ACCOUNT_ID:LICENSE_KEY, seeded by
+          # infra/k8s-init. GoatCounter then downloads GeoLite2-City to the PVC
+          # (refreshed on restart when older than 7 days) and records regions.
+          # Optional so the pod still starts with the built-in country DB.
+          env:
+            - name: GOATCOUNTER_GEODB
+              valueFrom:
+                secretKeyRef:
+                  name: maxmind
+                  key: geodb
+                  optional: true
           ports:
             - containerPort: 8080
           volumeMounts:

@@ -66,6 +66,28 @@ new k8s.core.v1.Secret("grafana-admin", {
   stringData: { username: "admin", password: grafanaAdminPassword },
 }, { dependsOn: monitoringNs });
 
+// MaxMind GeoLite2 credentials, consumed by the goatcounter Deployment in
+// gitops/ as GOATCOUNTER_GEODB. GoatCounter downloads the City database with
+// them, which adds regions on top of the built-in country lookup. Optional:
+// without them GoatCounter keeps using the built-in country database.
+const maxmindAccountId = config.get("maxmindAccountId");
+const maxmindLicenseKey = config.getSecret("maxmindLicenseKey");
+
+if (maxmindAccountId && maxmindLicenseKey) {
+  // ArgoCD already creates this namespace (CreateNamespace=true). Keep it on
+  // delete, it holds the SQLite PVC.
+  const goatcounterNs = new k8s.core.v1.Namespace("goatcounter", {
+    metadata: { name: "goatcounter" },
+  }, { retainOnDelete: true });
+
+  new k8s.core.v1.Secret("goatcounter-maxmind", {
+    metadata: { name: "maxmind", namespace: goatcounterNs.metadata.name },
+    stringData: {
+      geodb: pulumi.interpolate`maxmind:${maxmindAccountId}:${maxmindLicenseKey}`,
+    },
+  }, { dependsOn: goatcounterNs });
+}
+
 // ── root application ───────────────────────────────────────────────────────
 // Hands the rest of the cluster over to ArgoCD.
 

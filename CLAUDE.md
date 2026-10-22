@@ -52,6 +52,8 @@ via GitOps because of chicken-and-egg ordering:
 2. Seeds bootstrap secrets:
    - `argocd/charemma-github` -- PAT for argocd-image-updater write-back
    - `attic/attic-credentials` -- HS256 JWT signer secret for the attic cache
+   - `monitoring/grafana-admin` -- Grafana admin credentials
+   - `goatcounter/maxmind` -- MaxMind GeoLite2 credentials (GoatCounter regions)
 3. Creates one ArgoCD root `Application` pointing at `gitops/apps/` in this repo.
 
 **`infra/ci/`** (stack: `prod`, Python/uv). GitLab org structure and CI
