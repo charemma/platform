@@ -1,0 +1,32 @@
+# Public only for the tracking endpoint and script. Everything else
+# (dashboard, login) 404s at Traefik; use port-forward, see README.md.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: goatcounter
+  namespace: goatcounter
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+spec:
+  rules:
+    - host: stats.charemma.de
+      http:
+        paths:
+          - path: /count
+            pathType: Exact
+            backend:
+              service:
+                name: goatcounter
+                port:
+                  number: 80
+          - path: /count.js
+            pathType: Exact
+            backend:
+              service:
+                name: goatcounter
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - stats.charemma.de
