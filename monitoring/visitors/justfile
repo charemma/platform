@@ -1,0 +1,34 @@
+# Who visits the sites, from Traefik's JSON access log. The log lives on
+# stdout of the Traefik pod, so it only reaches back as far as kubelet log
+# rotation and the last Traefik restart. See README.md.
+
+set fallback := true
+
+script := source_directory() / "visitors.py"
+archive_dir := env("VISITORS_ARCHIVE", home_directory() / ".local/share/visitors")
+
+_default:
+    @just --list visitors
+
+# Report on the live log, e.g. `just visitors::report 6h`
+report since="24h":
+    kubectl -n kube-system logs deploy/traefik --since={{ since }} | uv run --quiet {{ script }}
+
+# Same, with reverse DNS for every listed IP (slower)
+report-rdns since="24h":
+    kubectl -n kube-system logs deploy/traefik --since={{ since }} | uv run --quiet {{ script }} --rdns
+
+# Append the pod log to a local monthly archive (deduplicated)
+snapshot:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p "{{ archive_dir }}"
+    out="{{ archive_dir }}/$(date +%Y-%m).jsonl"
+    touch "$out"
+    kubectl -n kube-system logs deploy/traefik | { grep '"ClientAddr"' || true; } \
+        | sort -u - "$out" -o "$out"
+    echo "$(wc -l < "$out") entries in $out"
+
+# Report on the local archive of a month, e.g. `just visitors::archive 2026-10`
+archive month=`date +%Y-%m`:
+    uv run --quiet {{ script }} < "{{ archive_dir }}/{{ month }}.jsonl"

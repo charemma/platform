@@ -4,6 +4,7 @@ mod cache 'infra/nix-cache/justfile'
 mod ci 'infra/ci/justfile'
 mod k8s-init 'infra/k8s-init/justfile'
 mod uptime 'monitoring/justfile'
+mod visitors 'monitoring/visitors/justfile'
 
 _default:
     @just --list

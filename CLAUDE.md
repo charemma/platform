@@ -31,6 +31,9 @@ just k8s-init::bootstrap  # npm ci
 just k8s-init::preview    # pulumi preview --stack prod
 just k8s-init::deploy     # pulumi up --yes --stack prod
 just k8s-init::up         # pulumi up --stack prod (interactive)
+
+just visitors::report 24h  # who visited, from Traefik's access log (monitoring/visitors)
+just visitors::snapshot    # archive the pod log locally for longer history
 ```
 
 ## Architecture: infra/
