@@ -6,17 +6,24 @@ set fallback := true
 
 script := source_directory() / "visitors.py"
 archive_dir := env("VISITORS_ARCHIVE", home_directory() / ".local/share/visitors")
+# Sidecar in the Traefik pod that streams the access log file to stdout
+access_log := "kubectl -n kube-system logs deploy/traefik -c access-log"
 
 _default:
     @just --list visitors
 
+# Open the GoAccess live dashboard on http://localhost:8090 (Ctrl-C to stop)
+dashboard:
+    @echo "http://localhost:8090"
+    kubectl -n kube-system port-forward deploy/traefik 8090 7890
+
 # Report on the live log, e.g. `just visitors::report 6h`
 report since="24h":
-    kubectl -n kube-system logs deploy/traefik --since={{ since }} | uv run --quiet {{ script }}
+    {{ access_log }} --since={{ since }} | uv run --quiet {{ script }}
 
 # Same, with reverse DNS for every listed IP (slower)
 report-rdns since="24h":
-    kubectl -n kube-system logs deploy/traefik --since={{ since }} | uv run --quiet {{ script }} --rdns
+    {{ access_log }} --since={{ since }} | uv run --quiet {{ script }} --rdns
 
 # Append the pod log to a local monthly archive (deduplicated)
 snapshot:
@@ -25,7 +32,7 @@ snapshot:
     mkdir -p "{{ archive_dir }}"
     out="{{ archive_dir }}/$(date +%Y-%m).jsonl"
     touch "$out"
-    kubectl -n kube-system logs deploy/traefik | { grep '"ClientAddr"' || true; } \
+    {{ access_log }} | { grep '"ClientAddr"' || true; } \
         | sort -u - "$out" -o "$out"
     echo "$(wc -l < "$out") entries in $out"
 

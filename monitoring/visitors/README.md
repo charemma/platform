@@ -10,11 +10,24 @@ stdout (enabled in nixos-config, `services/k3s`), this tool reads it via
 - scanners and intrusion attempts (`/.env`, `wp-login.php`, many 404s, ...)
 
 ```
+just visitors::dashboard         # GoAccess live dashboard, http://localhost:8090
 just visitors::report 24h        # live log of the last 24h
 just visitors::report-rdns 6h    # plus reverse DNS per IP
 just visitors::snapshot          # append the pod log to ~/.local/share/visitors/YYYY-MM.jsonl
 just visitors::archive 2026-10   # report on an archived month
 ```
+
+## Dashboard
+
+GoAccess runs as a sidecar in the Traefik pod (nixos-config,
+`services/k3s/traefik-access-dashboard.nix`) with DB-IP country and ASN
+data. It is not exposed, `dashboard` port-forwards the page (8090) and its
+websocket (7890) through the tailnet-only API. It only knows what happened
+since the Traefik pod started.
+
+GoAccess takes the visitor IP from Traefik's `ClientHost`. Requests where a
+client sent its own X-Forwarded-For through Cloudflare carry a list there
+and show up as invalid lines; `report` handles those correctly.
 
 ## Visitor IP
 
