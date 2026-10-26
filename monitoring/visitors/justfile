@@ -5,7 +5,6 @@
 set fallback := true
 
 script := source_directory() / "visitors.py"
-archive_dir := env("VISITORS_ARCHIVE", home_directory() / ".local/share/visitors")
 # Sidecar in the Traefik pod that streams the access log file to stdout
 access_log := "kubectl -n kube-system logs deploy/traefik -c access-log"
 
@@ -25,17 +24,3 @@ report since="24h":
 report-rdns since="24h":
     {{ access_log }} --since={{ since }} | uv run --quiet {{ script }} --rdns
 
-# Append the pod log to a local monthly archive (deduplicated)
-snapshot:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    mkdir -p "{{ archive_dir }}"
-    out="{{ archive_dir }}/$(date +%Y-%m).jsonl"
-    touch "$out"
-    {{ access_log }} | { grep '"ClientAddr"' || true; } \
-        | sort -u - "$out" -o "$out"
-    echo "$(wc -l < "$out") entries in $out"
-
-# Report on the local archive of a month, e.g. `just visitors::archive 2026-10`
-archive month=`date +%Y-%m`:
-    uv run --quiet {{ script }} < "{{ archive_dir }}/{{ month }}.jsonl"
