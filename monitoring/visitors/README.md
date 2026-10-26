@@ -13,8 +13,6 @@ stdout (enabled in nixos-config, `services/k3s`), this tool reads it via
 just visitors::dashboard         # GoAccess live dashboard, http://localhost:8090
 just visitors::report 24h        # live log of the last 24h
 just visitors::report-rdns 6h    # plus reverse DNS per IP
-just visitors::snapshot          # append the pod log to ~/.local/share/visitors/YYYY-MM.jsonl
-just visitors::archive 2026-10   # report on an archived month
 ```
 
 ## Dashboard
@@ -49,6 +47,6 @@ company name when someone browses from an office network, not who it was.
 ## Retention
 
 The pod log only reaches back to the last Traefik restart and kubelet log
-rotation (a few MB). Run `snapshot` regularly if you want more history.
-Archived logs contain IP addresses, so they are personal data: keep them
-local, delete old months, and mention the logging in the privacy page.
+rotation (a few MB). Nothing here stores it: the commands read the live log
+and print a report. The access log contains IP addresses, so it is not
+archived anywhere, and the privacy pages say so.
