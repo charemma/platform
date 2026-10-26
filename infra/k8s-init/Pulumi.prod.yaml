@@ -8,3 +8,5 @@ config:
   k8s-init:maxmindAccountId: "1433599"
   k8s-init:maxmindLicenseKey:
     secure: AAABABHU6isRHVkJ73dtmk+Dta9UzwXPr1QwEoolZ/azfMAm0VREETHp4xh8T35fxVMXy8jfcBl9G2Q5lAgjpDXKBXAHTqd+
+  k8s-init:cloudflareDnsToken:
+    secure: AAABAI6IIRx7q66g4JzPYEEz08JfQ8id3UQqY22HAhKcYVuIzLywspaaN0cxT+WbNqG/0mNbqr0wCN6iKxr5m3GAEeJ2U5cTA0gRFrOxA6HJjMWrBw==

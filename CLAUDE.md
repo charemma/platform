@@ -57,6 +57,8 @@ via GitOps because of chicken-and-egg ordering:
    - `attic/attic-credentials` -- HS256 JWT signer secret for the attic cache
    - `monitoring/grafana-admin` -- Grafana admin credentials
    - `goatcounter/maxmind` -- MaxMind GeoLite2 credentials (GoatCounter regions)
+   - `kube-system/traefik-acme-dns` -- Cloudflare DNS token for Traefik's
+     ACME DNS-01 challenge (resolver config lives in nixos-config)
 3. Creates one ArgoCD root `Application` pointing at `gitops/apps/` in this repo.
 
 **`infra/ci/`** (stack: `prod`, Python/uv). GitLab org structure and CI

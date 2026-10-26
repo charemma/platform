@@ -88,6 +88,20 @@ if (maxmindAccountId && maxmindLicenseKey) {
   }, { dependsOn: goatcounterNs });
 }
 
+// Cloudflare API token (Zone:Read + DNS:Edit on charemma.de) for Traefik's ACME
+// DNS-01 challenge, consumed via envFrom by the Traefik HelmChartConfig in
+// nixos-config (services/k3s). TLS-ALPN-01 cannot work for Cloudflare-proxied
+// hosts. Optional: Traefik marks the secretRef optional and keeps running
+// without it, only new certificates fail.
+const cloudflareDnsToken = config.getSecret("cloudflareDnsToken");
+
+if (cloudflareDnsToken) {
+  new k8s.core.v1.Secret("traefik-acme-dns", {
+    metadata: { name: "traefik-acme-dns", namespace: "kube-system" },
+    stringData: { CF_DNS_API_TOKEN: cloudflareDnsToken },
+  });
+}
+
 // ── root application ───────────────────────────────────────────────────────
 // Hands the rest of the cluster over to ArgoCD.
 
